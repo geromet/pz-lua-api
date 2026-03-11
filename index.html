@@ -109,7 +109,7 @@
   #detail-panel.visible{display:block}
 
   /* source panel */
-  #source-panel{flex:1;display:none;flex-direction:column}
+  #source-panel{flex:1;display:none;flex-direction:column;min-width:0;overflow:hidden}
   #source-panel.visible{display:flex}
 
   /* ── Source toolbar ── */
@@ -120,8 +120,8 @@
 
   /* source code */
   #source-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-dim);font-size:13px}
-  #source-pre{flex:1;overflow:auto;margin:0!important;border-radius:0!important}
-  #source-pre code{font-size:12.5px;line-height:1.55;font-family:'Cascadia Code','Fira Code','Consolas',monospace;display:block}
+  #source-pre{flex:1;overflow:auto;margin:0!important;border-radius:0!important;min-width:0}
+  #source-pre code{font-size:12.5px;line-height:1.55;font-family:'Cascadia Code','Fira Code','Consolas',monospace;display:block;min-width:max-content}
 
   /* ── Source folding ── */
   .src-line{display:block;white-space:pre;position:relative}
@@ -192,10 +192,10 @@
   #globals-back-btn{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:4px 10px;color:var(--text-dim);font-size:12px;cursor:pointer}
   #globals-back-btn:hover{color:var(--text);border-color:#555}
   #globals-src-title{font-family:monospace;font-size:13px;color:var(--accent2)}
-  #globals-source-wrap{display:none;flex:1;flex-direction:column;overflow:hidden}
+  #globals-source-wrap{display:none;flex:1;flex-direction:column;overflow:hidden;min-width:0}
   #globals-source-wrap.visible{display:flex}
-  #globals-src-pre{flex:1;overflow:auto;margin:0!important;border-radius:0!important}
-  #globals-src-pre code{font-size:12.5px;line-height:1.55;font-family:'Cascadia Code','Fira Code','Consolas',monospace;display:block}
+  #globals-src-pre{flex:1;overflow:auto;margin:0!important;border-radius:0!important;min-width:0}
+  #globals-src-pre code{font-size:12.5px;line-height:1.55;font-family:'Cascadia Code','Fira Code','Consolas',monospace;display:block;min-width:max-content}
 
   ::-webkit-scrollbar{width:6px;height:6px}
   ::-webkit-scrollbar-track{background:var(--bg2)}
@@ -321,7 +321,8 @@ let localDirHandle = null;
 const foldedGlobalGroups = new Set();
 
 // Class namespace tree folding
-const foldedPackages = new Set();
+const foldedPackages  = new Set(); // manually closed
+const openedPackages  = new Set(); // manually opened beyond foldDepth
 let foldDepth = Infinity; // Infinity = fully open
 
 // ── Load API ──────────────────────────────────────────────────────────────
@@ -663,7 +664,7 @@ function renderPackageTreeHTML(node, depth) {
   for (const child of children) {
     const total = countClasses(child);
     if (!total) continue;
-    const folded = foldedPackages.has(child.path) || depth >= foldDepth;
+    const folded = foldedPackages.has(child.path) || (depth >= foldDepth && !openedPackages.has(child.path));
     html += `<div class="pkg-node">
       <div class="pkg-label" data-path="${esc(child.path)}">
         <span class="pkg-arrow">${folded ? '▶' : '▼'}</span>
@@ -672,7 +673,6 @@ function renderPackageTreeHTML(node, depth) {
       </div>
       <div class="pkg-contents${folded ? ' pkg-folded' : ''}">
         ${renderPackageTreeHTML(child, depth + 1)}
-        ${renderClassItemsHTML(child.classes, false)}
       </div>
     </div>`;
   }
@@ -714,8 +714,21 @@ function expandPackagePath(fqn) {
 }
 
 function togglePackage(path) {
-  if (foldedPackages.has(path)) foldedPackages.delete(path);
-  else foldedPackages.add(path);
+  const depth = path.split('.').length - 1;
+  if (foldedPackages.has(path)) {
+    // manually closed → open it
+    foldedPackages.delete(path);
+    if (depth >= foldDepth) openedPackages.add(path); // beyond depth limit, mark explicitly open
+  } else if (openedPackages.has(path)) {
+    // explicitly opened beyond depth → close it
+    openedPackages.delete(path);
+  } else if (depth >= foldDepth) {
+    // folded by depth → open it explicitly
+    openedPackages.add(path);
+  } else {
+    // open normally → manually close
+    foldedPackages.add(path);
+  }
   buildClassList();
 }
 
@@ -736,6 +749,10 @@ function adjustFoldDepth(delta) {
   if (delta < 0) foldDepth = foldDepth === Infinity ? maxD - 1 : Math.max(0, foldDepth - 1);
   else           foldDepth = foldDepth >= maxD ? Infinity : foldDepth + 1;
   foldedPackages.clear();
+  // Prune any explicitly opened packages that are now at/beyond the new depth
+  for (const p of [...openedPackages]) {
+    if (p.split('.').length - 1 >= foldDepth) openedPackages.delete(p);
+  }
   updateDepthLabel();
   buildClassList();
 }
@@ -1104,10 +1121,10 @@ function setupEvents() {
 
   // Fold depth controls
   document.getElementById('btn-fold-all-pkg').addEventListener('click', () => {
-    foldDepth = 0; foldedPackages.clear(); updateDepthLabel(); buildClassList();
+    foldDepth = 0; foldedPackages.clear(); openedPackages.clear(); updateDepthLabel(); buildClassList();
   });
   document.getElementById('btn-unfold-all-pkg').addEventListener('click', () => {
-    foldDepth = Infinity; foldedPackages.clear(); updateDepthLabel(); buildClassList();
+    foldDepth = Infinity; foldedPackages.clear(); openedPackages.clear(); updateDepthLabel(); buildClassList();
   });
   document.getElementById('btn-fold-less').addEventListener('click', () => adjustFoldDepth(-1));
   document.getElementById('btn-fold-more').addEventListener('click', () => adjustFoldDepth(+1));
