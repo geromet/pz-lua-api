@@ -55,6 +55,7 @@ function navGo(delta) {
   navJumping = true;
   const s = navHistory[navIndex];
   if (s.type === 'globals') switchTab('globals');
+  else if (s.type === 'globalSource') { switchTab('globals'); showGlobalSource(s.javaMethod); }
   else { switchTab('classes'); selectClass(s.fqn); }
   navJumping = false;
   updateNavButtons();

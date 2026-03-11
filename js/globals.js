@@ -72,6 +72,7 @@ function updateGlobalsTable(filter) {
 }
 
 async function showGlobalSource(javaMethod) {
+  navPush({type: 'globalSource', javaMethod});
   const relPath = 'zombie/Lua/LuaManager.java';
   document.getElementById('globals-header').style.display     = 'none';
   document.getElementById('globals-nav').classList.add('visible');
