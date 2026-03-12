@@ -20,7 +20,9 @@ This is the live tracker. Update it when:
 
 ## Active Tasks
 
-*(none — pick from Planned Features or open bugs)*
+| ID | File | Summary |
+|----|------|---------|
+| TASK-010 | [TASK-010](Tasks/TASK-010-fix-placeholder-state-restore.md) | Fix placeholder state not hiding panels on backward navigation (BUG-009) |
 
 ---
 
