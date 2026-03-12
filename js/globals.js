@@ -6,6 +6,7 @@ function showGlobalsPanel(show) {
   document.getElementById('panels').style.display = show ? 'none' : '';
   document.getElementById('detail-panel').classList.toggle('visible', !show && currentCtab === 'detail' && currentClass !== null);
   document.getElementById('source-panel').classList.toggle('visible', !show && currentCtab === 'source' && currentClass !== null);
+  document.getElementById('tab-bar').classList.toggle('visible', !show && tabs.length > 0);
 }
 
 function initGlobals() {
