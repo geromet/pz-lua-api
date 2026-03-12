@@ -1,6 +1,8 @@
+> **FIXED 2026-03-12** — Added panel-hiding calls and `currentClass = null` to the `'placeholder'` branch of `applyState` in `js/app.js`.
+
 # BUG-009: Placeholder text shows above Detail/Source panels when navigating back to initial state
 
-**Status:** Open
+**Status:** Fixed (2026-03-12)
 **Severity:** Low
 **Touches:** `js/app.js` (`applyState`)
 

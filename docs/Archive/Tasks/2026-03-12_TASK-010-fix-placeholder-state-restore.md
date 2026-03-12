@@ -1,6 +1,8 @@
+> **COMPLETED 2026-03-12** — Added three `classList.remove('visible')` calls and `currentClass = null` in the `'placeholder'` branch of `applyState` in `js/app.js`.
+
 # TASK-010: Fix placeholder state not hiding panels on backward navigation
 
-**Status:** Ready
+**Status:** Done
 **Estimated scope:** Tiny
 **Touches:** `js/app.js` (`applyState`)
 **Resolves:** [BUG-009](../Bugs/BUG-009-placeholder-visible-over-panels.md)

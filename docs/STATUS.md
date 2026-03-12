@@ -12,17 +12,13 @@ This is the live tracker. Update it when:
 
 ## Open Bugs
 
-| ID | File | Severity | Summary |
-|----|------|----------|---------|
-| BUG-009 | [BUG-009](Bugs/BUG-009-placeholder-visible-over-panels.md) | Low | Placeholder visible over Detail/Source panels when navigating back to initial state |
+*(none)*
 
 ---
 
 ## Active Tasks
 
-| ID | File | Summary |
-|----|------|---------|
-| TASK-010 | [TASK-010](Tasks/TASK-010-fix-placeholder-state-restore.md) | Fix placeholder state not hiding panels on backward navigation (BUG-009) |
+*(none — pick from Planned Features or open bugs)*
 
 ---
 

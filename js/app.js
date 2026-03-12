@@ -79,6 +79,10 @@ async function applyState(s) {
   try {
     if (s.type === 'placeholder') {
       showGlobalsPanel(false);
+      document.getElementById('content-tabs').classList.remove('visible');
+      document.getElementById('detail-panel').classList.remove('visible');
+      document.getElementById('source-panel').classList.remove('visible');
+      currentClass = null;
       document.getElementById('placeholder').style.display = 'flex';
       location.hash = '';
       return;
