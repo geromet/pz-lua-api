@@ -419,10 +419,12 @@ function setupEvents() {
     wrap.querySelectorAll('.globals-dom-header').forEach(hdr => foldedGlobalGroups.add(hdr.dataset.domkey));
     wrap.querySelectorAll('.globals-sec-header').forEach(hdr => foldedGlobalGroups.add(hdr.dataset.seckey));
     wrap.querySelectorAll('.globals-grp-header').forEach(hdr => foldedGlobalGroups.add(hdr.dataset.grpkey));
+    saveGlobalGroupFolds();
     updateGlobalsTable(document.getElementById('globals-search')?.value || '');
   });
   document.getElementById('btn-unfold-groups').addEventListener('click', () => {
     foldedGlobalGroups.clear();
+    saveGlobalGroupFolds();
     updateGlobalsTable(document.getElementById('globals-search')?.value || '');
   });
 
@@ -445,9 +447,18 @@ function setupEvents() {
   // Global search bar
   let searchTimer;
   const searchEl = document.getElementById('global-search');
+  const searchClearBtn = document.getElementById('btn-search-clear');
   searchEl.addEventListener('input', e => {
     clearTimeout(searchTimer);
+    searchClearBtn.classList.toggle('visible', !!searchEl.value);
     searchTimer = setTimeout(() => { currentSearch = e.target.value; buildClassList(); }, 150);
+  });
+  searchClearBtn.addEventListener('click', () => {
+    searchEl.value = '';
+    currentSearch = '';
+    searchClearBtn.classList.remove('visible');
+    buildClassList();
+    searchEl.focus();
   });
   searchEl.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { e.preventDefault(); navigateList(+1); }

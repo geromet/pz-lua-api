@@ -1,5 +1,16 @@
 'use strict';
 
+function loadGlobalGroupFolds() {
+  try {
+    const saved = localStorage.getItem('pzGlobalFolds');
+    if (saved) JSON.parse(saved).forEach(g => foldedGlobalGroups.add(g));
+  } catch {}
+}
+
+function saveGlobalGroupFolds() {
+  localStorage.setItem('pzGlobalFolds', JSON.stringify([...foldedGlobalGroups]));
+}
+
 function showGlobalsPanel(show) {
   document.getElementById('globals-panel').classList.toggle('visible', show);
   document.getElementById('content-tabs').classList.toggle('visible', !show && currentClass !== null);
@@ -13,6 +24,8 @@ function initGlobals() {
   showGlobalsPanel(true);
   backToGlobalsTable();
   document.getElementById('placeholder').style.display = 'none';
+  foldedGlobalGroups.clear();
+  loadGlobalGroupFolds();
   updateGlobalsTable('');
   const inp   = document.getElementById('globals-search');
   const fresh = inp.cloneNode(true);
@@ -105,6 +118,7 @@ function updateGlobalsTable(filter) {
       const domKey = hdr.dataset.domkey;
       if (foldedGlobalGroups.has(domKey)) foldedGlobalGroups.delete(domKey);
       else foldedGlobalGroups.add(domKey);
+      saveGlobalGroupFolds();
       const folded = foldedGlobalGroups.has(domKey);
       hdr.querySelector('.ggh-arrow').textContent = folded ? '▶' : '▼';
       wrap.querySelectorAll(`[data-domkey="${domKey}"]`).forEach(r => {
@@ -131,6 +145,7 @@ function updateGlobalsTable(filter) {
       const secKey = hdr.dataset.seckey;
       if (foldedGlobalGroups.has(secKey)) foldedGlobalGroups.delete(secKey);
       else foldedGlobalGroups.add(secKey);
+      saveGlobalGroupFolds();
       const folded = foldedGlobalGroups.has(secKey);
       hdr.querySelector('.ggh-arrow').textContent = folded ? '▶' : '▼';
       wrap.querySelectorAll(`[data-seckey="${secKey}"]`).forEach(r => {
@@ -153,6 +168,7 @@ function updateGlobalsTable(filter) {
       const grpKey = hdr.dataset.grpkey;
       if (foldedGlobalGroups.has(grpKey)) foldedGlobalGroups.delete(grpKey);
       else foldedGlobalGroups.add(grpKey);
+      saveGlobalGroupFolds();
       const folded = foldedGlobalGroups.has(grpKey);
       hdr.querySelector('.ggh-arrow').textContent = folded ? '▶' : '▼';
       wrap.querySelectorAll(`.gfn-row[data-grpkey="${grpKey}"]`).forEach(r => r.style.display = folded ? 'none' : '');
