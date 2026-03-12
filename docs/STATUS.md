@@ -12,19 +12,13 @@ This is the live tracker. Update it when:
 
 ## Open Bugs
 
-| ID | File | Severity | Summary |
-|----|------|----------|---------|
-| BUG-005 | [BUG-005](Bugs/BUG-005-luamanager-not-in-class-list.md) | Low | LuaManager not in class list |
-| BUG-006 | [BUG-006](Bugs/BUG-006-perk-source-disambiguation.md) | Medium | Perk disambiguation — wrong source file may open |
-| BUG-007 | [BUG-007](Bugs/BUG-007-nav-uri-edge-cases.md) | Low–Medium | Nav / URI hash edge cases |
+*(none)*
 
 ---
 
 ## Active Tasks
 
-| ID | File | Status | Summary |
-|----|------|--------|---------|
-| *(none)* | — | — | All tasks resolved — pick from Planned Features |
+*(none — all tasks resolved; pick from Planned Features)*
 
 ---
 

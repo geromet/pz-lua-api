@@ -18,6 +18,8 @@ function initGlobals() {
   fresh.value = '';
   fresh.addEventListener('input', () => updateGlobalsTable(fresh.value));
   fresh.focus();
+  document.getElementById('btn-luamgr-src').onclick = () =>
+    showSourceByPath('zombie/Lua/LuaManager.java');
 }
 
 function updateGlobalsTable(filter) {

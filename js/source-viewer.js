@@ -168,8 +168,15 @@ function linkClassRefs(codeEl) {
         a.className = 'src-class-ref';
         a.textContent = part;
         if (fqns) {
-          a.dataset.fqn = fqns[0];
-          a.title = fqns[0];
+          // When multiple FQNs share the same simple name, prefer top-level classes
+          // (penultimate segment is a lowercase package) over nested classes
+          // (penultimate segment is an uppercase outer class name).
+          const best = fqns.find(f => {
+            const segs = f.split('.');
+            return segs.length < 2 || /^[a-z]/.test(segs[segs.length - 2]);
+          }) ?? fqns[0];
+          a.dataset.fqn = best;
+          a.title = best;
         } else {
           a.dataset.sourcePath = srcPath;
           a.title = srcPath + ' (source only — not in Lua API)';

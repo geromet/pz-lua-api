@@ -35,6 +35,11 @@ function init() {
 
   buildClassList();
   setupEvents();
+  // Seed history with a placeholder entry so Alt+Left from the first class
+  // can always navigate back to the "no class selected" state.
+  navHistory.push({type: 'placeholder'});
+  navIndex = 0;
+  updateNavButtons();
   if (location.hash) {
     const val = decodeURIComponent(location.hash.slice(1));
     if (val === 'globals') switchTab('globals');
@@ -75,6 +80,7 @@ async function applyState(s) {
     if (s.type === 'placeholder') {
       showGlobalsPanel(false);
       document.getElementById('placeholder').style.display = 'flex';
+      location.hash = '';
       return;
     }
     if (s.type === 'globals') {

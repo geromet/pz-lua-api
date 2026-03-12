@@ -6,6 +6,16 @@ One file per confirmed defect. File a bug here when something is reproducibly br
 **When to write here:** When a new bug is confirmed. Also update `docs/STATUS.md`.
 **When to move a file:** Move to `docs/Archive/` when the bug is fixed. Add a one-line fix summary at the top of the file and update `docs/STATUS.md`.
 
+## Before Working on Bugs
+
+Do not work on a bug directly. First create a Task in `docs/Tasks/`:
+
+1. Read the bug file(s) fully.
+2. Read the relevant source code to confirm the root cause.
+3. **Group related bugs into a single Task** if they touch the same file or share a root cause — one commit is better than three.
+4. Write the Task with a concrete implementation plan and acceptance criteria (one checkbox per bug resolved).
+5. Then work the Task as normal.
+
 ## File Naming
 
 `BUG-NNN-short-slug.md` (next available number, lowercase slug, hyphens)
