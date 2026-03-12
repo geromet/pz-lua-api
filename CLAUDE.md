@@ -92,7 +92,10 @@ When the user says "work on the tasks" (or similar), do this without further cla
    - If the task resolves a bug, move that bug file to `docs/Archive/` too with a note.
    - Update `docs/STATUS.md` — remove the task from "Active Tasks" and the bug from "Open Bugs".
 4. **If a task is blocked** (missing data, unclear spec, prerequisite not met), note the blocker in the task file, leave it in `docs/Tasks/`, and move to the next task.
-5. **After all tasks** in a session are done, ask the user if they want to pick new tasks from the feature/bug lists or create new task files.
+5. **After all tasks** in a session are done:
+   - Stage and commit all changes: `git add -A && git commit -m "..."`
+   - Push to the remote: `git push`
+   - Then ask the user if they want to pick new tasks from the feature/bug lists or create new task files.
 
 ## Commit / PR Rules
 
