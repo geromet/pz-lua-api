@@ -26,9 +26,14 @@ This is the live tracker. Update it when:
 
 | ID | File | Priority | Summary |
 |----|------|----------|---------|
+| TASK-019 | [TASK-019](Tasks/TASK-019-fix-method-link-navigation.md) | High | Fix inherit-method-link click navigation (BUG-010) |
+| TASK-020 | [TASK-020](Tasks/TASK-020-fix-empty-box-above-globals.md) | High | Fix empty box above globals view (BUG-011) |
+| TASK-021 | [TASK-021](Tasks/TASK-021-fix-source-directory-listing.md) | High | Fix source panel showing directory listing (BUG-013) |
+| TASK-022 | [TASK-022](Tasks/TASK-022-fix-globals-grouping.md) | High | Fix globals not grouped (BUG-014) |
 | TASK-012 | [TASK-012](Tasks/TASK-012-tab-bar-system.md) | High | Tab bar system (FEAT-006) |
+| TASK-023 | [TASK-023](Tasks/TASK-023-globals-split-view.md) | Medium | Globals split view — list + source side by side (BUG-012); do after TASK-022 |
 | TASK-013 | [TASK-013](Tasks/TASK-013-search-improvements.md) | Medium | Search highlight + clear buttons (FEAT-013) |
-| TASK-014 | [TASK-014](Tasks/TASK-014-globals-redesign-and-sticky-headers.md) | Medium | Globals sticky headers + fold memory (FEAT-011, FEAT-012) |
+| TASK-014 | [TASK-014](Tasks/TASK-014-globals-redesign-and-sticky-headers.md) | Medium | Globals sticky headers + fold memory (FEAT-011, FEAT-012); do after TASK-022 |
 | TASK-015 | [TASK-015](Tasks/TASK-015-wildcard-import-fallback.md) | Medium | Wildcard import fallback for class-ref linking (FEAT-009 Problem B) |
 | TASK-016 | [TASK-016](Tasks/TASK-016-javadoc-extraction.md) | Medium | Extract and display Javadoc comments (FEAT-010) |
 | TASK-017 | [TASK-017](Tasks/TASK-017-build-time-precomputation.md) | Low | Build-time precomputation for faster startup (FEAT-008) |
