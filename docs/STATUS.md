@@ -20,8 +20,7 @@ This is the live tracker. Update it when:
 
 | ID | File | Priority | Summary |
 |----|------|----------|---------|
-| TASK-011 | [TASK-011](Tasks/TASK-011-side-by-side-panels.md) | High | Side-by-side Detail + Source panel layout (FEAT-003) |
-| TASK-012 | [TASK-012](Tasks/TASK-012-tab-bar-system.md) | High | Tab bar system — do after TASK-011 (FEAT-006) |
+| TASK-012 | [TASK-012](Tasks/TASK-012-tab-bar-system.md) | High | Tab bar system (FEAT-006) |
 | TASK-013 | [TASK-013](Tasks/TASK-013-search-improvements.md) | Medium | Search highlight + clear buttons (FEAT-013) |
 | TASK-014 | [TASK-014](Tasks/TASK-014-globals-redesign-and-sticky-headers.md) | Medium | Globals sticky headers + fold memory (FEAT-011, FEAT-012) |
 | TASK-015 | [TASK-015](Tasks/TASK-015-wildcard-import-fallback.md) | Medium | Wildcard import fallback for class-ref linking (FEAT-009 Problem B) |
@@ -35,7 +34,7 @@ This is the live tracker. Update it when:
 
 | ID | File | Blocked by | Summary |
 |----|------|------------|---------|
-| FEAT-004 | [FEAT-004](Planned_Features/FEAT-004-resizable-panels.md) | TASK-011 | Draggable resize handles (needs split layout first) |
+| FEAT-004 | [FEAT-004](Planned_Features/FEAT-004-resizable-panels.md) | *(unblocked)* | Draggable resize handles |
 | FEAT-007 | [FEAT-007](Planned_Features/FEAT-007-middle-mouse-new-tab.md) | TASK-012 | Middle-click to open in new tab (needs tab bar first) |
 | FEAT-014 | [FEAT-014](Planned_Features/FEAT-014-hover-preview.md) | TASK-012 | Hover preview window (interaction model changes with tabs) |
 

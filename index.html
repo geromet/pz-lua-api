@@ -62,20 +62,23 @@
     <div id="content-tabs">
       <div class="ctab active" data-ctab="detail">Detail</div>
       <div class="ctab" data-ctab="source">Source</div>
+      <button id="btn-split-toggle" title="Switch to split panel">⊞</button>
     </div>
 
-    <div id="detail-panel"></div>
+    <div id="panels">
+      <div id="detail-panel"></div>
 
-    <div id="source-panel">
-      <div class="source-toolbar" id="source-toolbar" style="display:none">
-        <button class="stb-btn" id="src-fold-all">Fold All</button>
-        <span class="stb-sep"></span>
-        <button class="stb-btn" id="src-unfold-all">Unfold All</button>
-        <span class="stb-sep"></span>
-        <button class="stb-btn" id="src-fold-methods">Fold to Methods</button>
+      <div id="source-panel">
+        <div class="source-toolbar" id="source-toolbar" style="display:none">
+          <button class="stb-btn" id="src-fold-all">Fold All</button>
+          <span class="stb-sep"></span>
+          <button class="stb-btn" id="src-unfold-all">Unfold All</button>
+          <span class="stb-sep"></span>
+          <button class="stb-btn" id="src-fold-methods">Fold to Methods</button>
+        </div>
+        <span id="source-loading" style="display:none">Loading source…</span>
+        <pre id="source-pre"><code id="source-code" class="language-java"></code></pre>
       </div>
-      <span id="source-loading" style="display:none">Loading source…</span>
-      <pre id="source-pre"><code id="source-code" class="language-java"></code></pre>
     </div>
 
     <!-- Globals panel replaces detail/source when globals tab active -->

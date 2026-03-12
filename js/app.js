@@ -35,6 +35,7 @@ function init() {
 
   buildClassList();
   setupEvents();
+  if (localStorage.getItem('splitLayout') === '1') applySplitLayout(true);
   // Seed history with a placeholder entry so Alt+Left from the first class
   // can always navigate back to the "no class selected" state.
   navHistory.push({type: 'placeholder'});
@@ -167,15 +168,41 @@ function selectClass(fqn, matchInfo) {
   showGlobalsPanel(false);
   document.getElementById('content-tabs').classList.add('visible');
   renderClassDetail(fqn);
-  if (currentCtab === 'source') showSource(API.classes[fqn]);
+  if (currentCtab === 'source' || splitLayout) showSource(API.classes[fqn]);
 }
 
 // ── Content tab switching ─────────────────────────────────────────────────
 function switchCtab(name) {
   currentCtab = name;
   document.querySelectorAll('.ctab').forEach(t => t.classList.toggle('active', t.dataset.ctab === name));
-  document.getElementById('detail-panel').classList.toggle('visible', name === 'detail');
-  document.getElementById('source-panel').classList.toggle('visible', name === 'source');
+  if (splitLayout) {
+    // Both panels always visible in split mode
+    document.getElementById('detail-panel').classList.add('visible');
+    document.getElementById('source-panel').classList.add('visible');
+  } else {
+    document.getElementById('detail-panel').classList.toggle('visible', name === 'detail');
+    document.getElementById('source-panel').classList.toggle('visible', name === 'source');
+  }
+}
+
+// ── Split layout ──────────────────────────────────────────────────────────
+function applySplitLayout(enabled) {
+  splitLayout = enabled && window.innerWidth > 900;
+  document.getElementById('content').classList.toggle('split-layout', splitLayout);
+  const btn = document.getElementById('btn-split-toggle');
+  btn.textContent = splitLayout ? '⊟' : '⊞';
+  btn.title = splitLayout ? 'Switch to single panel' : 'Switch to split panel';
+  localStorage.setItem('splitLayout', splitLayout ? '1' : '0');
+  if (currentClass) {
+    if (splitLayout) {
+      document.getElementById('detail-panel').classList.add('visible');
+      document.getElementById('source-panel').classList.add('visible');
+      if (!document.getElementById('source-code').textContent.trim())
+        showSource(API.classes[currentClass]);
+    } else {
+      switchCtab(currentCtab);
+    }
+  }
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
@@ -199,6 +226,10 @@ function setupEvents() {
   // Back / forward buttons
   document.getElementById('btn-nav-back').addEventListener('click',    () => navGo(-1));
   document.getElementById('btn-nav-forward').addEventListener('click', () => navGo(+1));
+
+  // Split layout toggle
+  document.getElementById('btn-split-toggle').addEventListener('click', () => applySplitLayout(!splitLayout));
+  window.addEventListener('resize', () => { if (splitLayout && window.innerWidth <= 900) applySplitLayout(false); });
 
   // Local folder picker
   document.getElementById('btn-folder').addEventListener('click', async () => {

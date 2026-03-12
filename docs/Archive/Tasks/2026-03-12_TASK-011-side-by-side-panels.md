@@ -1,6 +1,8 @@
+> **COMPLETED 2026-03-12** — Added `#panels` wrapper, `#btn-split-toggle`, `splitLayout` state var, `applySplitLayout()`, updated `switchCtab()` and `selectClass()`. Layout persists in localStorage. Both panels visible in split mode; `visible` class mechanism unchanged.
+
 # TASK-011: Side-by-side Detail + Source panel layout
 
-**Status:** Ready
+**Status:** Done
 **Estimated scope:** Medium
 **Touches:** `index.html`, `app.css`, `js/app.js`, `js/state.js`
 **Resolves:** [FEAT-003](../Planned_Features/FEAT-003-side-by-side-panels.md)
