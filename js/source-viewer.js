@@ -140,27 +140,92 @@ function linkClassRefs(codeEl) {
     if (!/[A-Z]/.test(text)) continue;
     const parts = text.split(/\b/);
     let changed = false;
+    let skipNextIdent = false;
     const frag = document.createDocumentFragment();
-    for (const part of parts) {
+    let i = 0;
+    while (i < parts.length) {
+      const part = parts[i];
+      const isIdent = /^\w+$/.test(part);
+      if (!isIdent) {
+        // Punctuation/operators reset the skip flag; pure whitespace does not.
+        // This preserves "Type name" skipping across the space between them,
+        // while still allowing "Map<Type, NextType>" to link NextType correctly.
+        if (/\S/.test(part)) skipNextIdent = false;
+        frag.appendChild(document.createTextNode(part));
+        i++;
+        continue;
+      }
+      // Identifier token: if the previous matched class token was the immediately
+      // preceding identifier (no intervening punctuation), this is a variable/field
+      // name — emit as plain text.
+      if (skipNextIdent) {
+        skipNextIdent = false;
+        frag.appendChild(document.createTextNode(part));
+        i++;
+        continue;
+      }
       const isCapitalized = part.length > 1 && /^[A-Z]/.test(part);
-      const fqns     = isCapitalized ? classBySimpleName[part] : null;
-      const srcPath  = !fqns && isCapitalized ? sourceOnlyPaths[part] : null;
+      const fqns    = isCapitalized ? classBySimpleName[part] : null;
+      const srcPath = !fqns && isCapitalized ? sourceOnlyPaths[part] : null;
       if (fqns || srcPath) {
         const a = document.createElement('a');
         a.className = 'src-class-ref';
         a.textContent = part;
         if (fqns) {
-          a.dataset.fqn = fqns[0];
-          a.title = fqns[0];
+          // When multiple FQNs share the same simple name, prefer top-level classes
+          // (penultimate segment is a lowercase package) over nested classes
+          // (penultimate segment is an uppercase outer class name).
+          const best = fqns.find(f => {
+            const segs = f.split('.');
+            return segs.length < 2 || /^[a-z]/.test(segs[segs.length - 2]);
+          }) ?? fqns[0];
+          a.dataset.fqn = best;
+          a.title = best;
         } else {
           a.dataset.sourcePath = srcPath;
           a.title = srcPath + ' (source only — not in Lua API)';
         }
         frag.appendChild(a);
         changed = true;
-      } else {
-        frag.appendChild(document.createTextNode(part));
+        skipNextIdent = true;
+        i++;
+        // Look ahead for .methodName( pattern — only for API-linked classes (have fqn).
+        // Emits the method name as an inherit-method-link when the method is in the API.
+        if (fqns) {
+          const linkedFqn = a.dataset.fqn;
+          let j = i;
+          while (j < parts.length && /^\s*$/.test(parts[j])) j++;
+          if (j < parts.length && parts[j] === '.') {
+            const dotJ = j; j++;
+            while (j < parts.length && /^\s*$/.test(parts[j])) j++;
+            if (j < parts.length && /^\w+$/.test(parts[j])) {
+              const mName = parts[j]; const mJ = j; j++;
+              while (j < parts.length && /^\s*$/.test(parts[j])) j++;
+              if (j < parts.length && parts[j].startsWith('(')) {
+                const cls = API.classes[linkedFqn];
+                if (cls && cls.methods && cls.methods.some(m => m.name === mName)) {
+                  for (let k = i; k < dotJ; k++) frag.appendChild(document.createTextNode(parts[k]));
+                  frag.appendChild(document.createTextNode(parts[dotJ]));
+                  for (let k = dotJ + 1; k < mJ; k++) frag.appendChild(document.createTextNode(parts[k]));
+                  const ma = document.createElement('a');
+                  ma.className = 'inherit-method-link';
+                  ma.dataset.fqn = linkedFqn;
+                  ma.dataset.method = mName;
+                  ma.textContent = mName;
+                  frag.appendChild(ma);
+                  changed = true;
+                  skipNextIdent = false;
+                  i = mJ + 1;
+                  continue;
+                }
+              }
+            }
+          }
+        }
+        continue;
       }
+      frag.appendChild(document.createTextNode(part));
+      i++;
     }
     if (changed) textNode.parentNode.replaceChild(frag, textNode);
   }
@@ -270,11 +335,22 @@ function scrollToMethod(sourceText, methodName, panelEl, codeEl) {
   if (!codeEl)  codeEl  = document.getElementById('source-code');
 
   const lines = sourceText.split('\n');
-  const re = new RegExp(`(?:public|protected|private|static|\\s)\\s+\\S[^\\n]*?\\b${methodName}\\s*\\(`);
+  const reDecl = new RegExp(`(?:public|protected|private|static|\\s)\\s+\\S[^\\n]*?\\b${methodName}\\s*\\(`);
+  const reOcc  = new RegExp(`\\b${methodName}\\s*\\(`);
   let lineIdx = -1;
-  for (let i = 0; i < lines.length; i++) { if (re.test(lines[i])) { lineIdx = i; break; } }
+  for (let i = 0; i < lines.length; i++) {
+    if (!reDecl.test(lines[i])) continue;
+    const mIdx = lines[i].search(reOcc);
+    if (mIdx > 0 && lines[i].slice(0, mIdx).trimEnd().endsWith('.')) continue;
+    lineIdx = i; break;
+  }
   if (lineIdx === -1) {
-    for (let i = 0; i < lines.length; i++) { if (lines[i].includes(methodName + '(')) { lineIdx = i; break; } }
+    for (let i = 0; i < lines.length; i++) {
+      const mIdx = lines[i].indexOf(methodName + '(');
+      if (mIdx === -1) continue;
+      if (mIdx > 0 && lines[i].slice(0, mIdx).trimEnd().endsWith('.')) continue;
+      lineIdx = i; break;
+    }
   }
   if (lineIdx === -1) return;
 

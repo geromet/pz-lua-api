@@ -35,6 +35,12 @@ function init() {
 
   buildClassList();
   setupEvents();
+  if (localStorage.getItem('splitLayout') === '1') applySplitLayout(true);
+  // Seed history with a placeholder entry so Alt+Left from the first class
+  // can always navigate back to the "no class selected" state.
+  navHistory.push({type: 'placeholder'});
+  navIndex = 0;
+  updateNavButtons();
   if (location.hash) {
     const val = decodeURIComponent(location.hash.slice(1));
     if (val === 'globals') switchTab('globals');
@@ -74,7 +80,12 @@ async function applyState(s) {
   try {
     if (s.type === 'placeholder') {
       showGlobalsPanel(false);
+      document.getElementById('content-tabs').classList.remove('visible');
+      document.getElementById('detail-panel').classList.remove('visible');
+      document.getElementById('source-panel').classList.remove('visible');
+      currentClass = null;
       document.getElementById('placeholder').style.display = 'flex';
+      location.hash = '';
       return;
     }
     if (s.type === 'globals') {
@@ -157,15 +168,41 @@ function selectClass(fqn, matchInfo) {
   showGlobalsPanel(false);
   document.getElementById('content-tabs').classList.add('visible');
   renderClassDetail(fqn);
-  if (currentCtab === 'source') showSource(API.classes[fqn]);
+  if (currentCtab === 'source' || splitLayout) showSource(API.classes[fqn]);
 }
 
 // ── Content tab switching ─────────────────────────────────────────────────
 function switchCtab(name) {
   currentCtab = name;
   document.querySelectorAll('.ctab').forEach(t => t.classList.toggle('active', t.dataset.ctab === name));
-  document.getElementById('detail-panel').classList.toggle('visible', name === 'detail');
-  document.getElementById('source-panel').classList.toggle('visible', name === 'source');
+  if (splitLayout) {
+    // Both panels always visible in split mode
+    document.getElementById('detail-panel').classList.add('visible');
+    document.getElementById('source-panel').classList.add('visible');
+  } else {
+    document.getElementById('detail-panel').classList.toggle('visible', name === 'detail');
+    document.getElementById('source-panel').classList.toggle('visible', name === 'source');
+  }
+}
+
+// ── Split layout ──────────────────────────────────────────────────────────
+function applySplitLayout(enabled) {
+  splitLayout = enabled && window.innerWidth > 900;
+  document.getElementById('content').classList.toggle('split-layout', splitLayout);
+  const btn = document.getElementById('btn-split-toggle');
+  btn.textContent = splitLayout ? '⊟' : '⊞';
+  btn.title = splitLayout ? 'Switch to single panel' : 'Switch to split panel';
+  localStorage.setItem('splitLayout', splitLayout ? '1' : '0');
+  if (currentClass) {
+    if (splitLayout) {
+      document.getElementById('detail-panel').classList.add('visible');
+      document.getElementById('source-panel').classList.add('visible');
+      if (!document.getElementById('source-code').textContent.trim())
+        showSource(API.classes[currentClass]);
+    } else {
+      switchCtab(currentCtab);
+    }
+  }
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
@@ -189,6 +226,10 @@ function setupEvents() {
   // Back / forward buttons
   document.getElementById('btn-nav-back').addEventListener('click',    () => navGo(-1));
   document.getElementById('btn-nav-forward').addEventListener('click', () => navGo(+1));
+
+  // Split layout toggle
+  document.getElementById('btn-split-toggle').addEventListener('click', () => applySplitLayout(!splitLayout));
+  window.addEventListener('resize', () => { if (splitLayout && window.innerWidth <= 900) applySplitLayout(false); });
 
   // Local folder picker
   document.getElementById('btn-folder').addEventListener('click', async () => {
@@ -295,15 +336,25 @@ function setupEvents() {
     if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); navGo(+1); }
   });
 
-  // Delegated click for source class refs (both source panels)
+  // Delegated click for source class refs and method links in source panels
   document.getElementById('content').addEventListener('click', e => {
     const a = e.target.closest('a.src-class-ref');
-    if (!a) return;
-    e.preventDefault();
-    if (a.dataset.sourcePath) {
-      showSourceByPath(a.dataset.sourcePath);
-    } else if (a.dataset.fqn) {
-      switchTab('classes'); selectClass(a.dataset.fqn);
+    if (a) {
+      e.preventDefault();
+      if (a.dataset.sourcePath) {
+        showSourceByPath(a.dataset.sourcePath);
+      } else if (a.dataset.fqn) {
+        switchTab('classes'); selectClass(a.dataset.fqn);
+      }
+      return;
+    }
+    // Method links inside source panels — same action as inherit-method-link in detail
+    // panel, but scoped to avoid double-handling with the detail-panel listener.
+    const ma = e.target.closest('a.inherit-method-link[data-fqn]');
+    if (ma && !ma.closest('#detail-panel')) {
+      e.preventDefault();
+      selectClass(ma.dataset.fqn);
+      showSource(API.classes[ma.dataset.fqn], ma.dataset.method);
     }
   });
 
@@ -333,7 +384,9 @@ function setupEvents() {
     if (moreToggle) {
       const moreEl = moreToggle.nextElementSibling;
       if (moreEl?.classList.contains('inherit-more')) {
-        const hidden = moreEl.style.display === 'none';
+        // Use toggle text to determine state — avoids the CSS vs inline-style mismatch
+        // where style.display==='' even when CSS hides the element via display:none.
+        const hidden = moreToggle.textContent.startsWith('…');
         moreEl.style.display = hidden ? '' : 'none';
         moreToggle.textContent = hidden
           ? 'show less'

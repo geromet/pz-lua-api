@@ -9,22 +9,22 @@ https://geromet.github.io/PZJavaDocs/
 
 ## Hosting on GitHub Pages
 
-1. Create a new GitHub repository (e.g. `pz-lua-api`)
+1. Create a new GitHub repository (e.g. `PZJavaDocs`)
 2. Push the contents of this folder:
    ```
    git init
    git add index.html lua_api.json README.md
    git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR_USERNAME/pz-lua-api.git
+   git remote add origin https://github.com/YOUR_USERNAME/PZJavaDocs.git
    git push -u origin main
    ```
 3. Go to the repo on GitHub → **Settings** → **Pages**
 4. Under **Source**, select **Deploy from a branch**, choose `main` / `(root)`
-5. Click **Save** — your site will be live at `https://YOUR_USERNAME.github.io/pz-lua-api/`
+5. Click **Save** — your site will be live at `https://YOUR_USERNAME.github.io/PZJavaDocs/`
 
 ## Regenerating the API data
 
-Run `extract_lua_api.py` from the `projectzomboid/` source directory, then copy the new `lua_api.json` here.
+Run `extract_lua_api.py` from the `projectzomboid/` source directory. It writes `lua_api.json` directly into this folder.
 
 ## Features
 

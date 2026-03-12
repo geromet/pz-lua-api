@@ -22,7 +22,7 @@ import javalang
 
 SRC_ROOT = pathlib.Path("E:/SteamLibrary/steamapps/common/ProjectZomboid/projectzomboid")
 LUA_MGR  = SRC_ROOT / "zombie/Lua/LuaManager.java"
-OUT_FILE = SRC_ROOT / "lua_api.json"
+OUT_FILE = SRC_ROOT / "pz-lua-api-viewer/lua_api.json"
 
 # ---------------------------------------------------------------------------
 # Step 1: Parse LuaManager.java — get setExposed FQNs and @LuaMethod globals
@@ -189,6 +189,25 @@ def get_public_methods(cls):
     return methods
 
 
+def get_nested_types(cls_node, parent_fqn):
+    nested = []
+    if isinstance(cls_node, javalang.tree.EnumDeclaration):
+        body = cls_node.body.declarations if cls_node.body else []
+    else:
+        body = cls_node.body or []
+    for member in body:
+        if isinstance(member, javalang.tree.ClassDeclaration):
+            kind = "class"
+        elif isinstance(member, javalang.tree.InterfaceDeclaration):
+            kind = "interface"
+        elif isinstance(member, javalang.tree.EnumDeclaration):
+            kind = "enum"
+        else:
+            continue
+        nested.append({"name": member.name, "kind": kind, "fqn": parent_fqn + "." + member.name})
+    return nested
+
+
 def get_public_fields(cls):
     fields = []
     for f in (cls.fields or []):
@@ -242,8 +261,37 @@ def build_class_entry(fqn, cls, set_exposed):
         "is_enum": is_enum,
         "methods": get_public_methods(cls) if not is_enum else [],
         "fields": (enum_constants + get_public_fields(cls)) if is_enum else get_public_fields(cls),
+        "nested_types": get_nested_types(cls, fqn),
     }
 
+
+# ---------------------------------------------------------------------------
+# Step 2.5: Enrich global_functions with return types and params
+# ---------------------------------------------------------------------------
+print("Enriching global function signatures...")
+_lua_mgr_tree = parse_java(lua_mgr_src)
+if _lua_mgr_tree:
+    for _, _go_cls in _lua_mgr_tree.filter(javalang.tree.ClassDeclaration):
+        if _go_cls.name == 'GlobalObject':
+            _go_sig_map = {
+                m.name: {
+                    "return_type": type_to_str(m.return_type),
+                    "params": [{"type": type_to_str(p.type), "name": p.name}
+                               for p in (m.parameters or [])],
+                }
+                for m in (_go_cls.methods or [])
+            }
+            for gf in global_functions:
+                sig = _go_sig_map.get(gf['java_method'], {})
+                gf['return_type'] = sig.get('return_type', '?')
+                gf['params']      = sig.get('params', [])
+            break
+# Ensure all entries have the fields even if parse failed or GlobalObject not found
+for gf in global_functions:
+    gf.setdefault('return_type', '?')
+    gf.setdefault('params', [])
+_enriched = sum(1 for gf in global_functions if gf['return_type'] != '?')
+print(f"  Enriched {_enriched}/{len(global_functions)} globals with type info")
 
 # ---------------------------------------------------------------------------
 # Step 3: Process setExposed classes
@@ -523,6 +571,16 @@ while _iface_queue:
 
 print(f"  Interfaces with extends: {len(_interface_extends)}")
 
+# Build FQN → path map for all visited interfaces that are NOT in the API.
+# Using FQN as the key avoids simple-name collisions with API classes.
+_interface_paths = {}
+for _iface_fqn in _iface_visited:
+    if _iface_fqn not in all_classes:
+        _jf, _ = fqn_to_path(_iface_fqn)
+        if _jf and _jf.exists():
+            _interface_paths[_iface_fqn] = str(_jf.relative_to(SRC_ROOT)).replace("\\", "/")
+print(f"  Interface source paths:  {len(_interface_paths)}")
+
 # ---------------------------------------------------------------------------
 # Step 5: Build _source_index — source-linkable classes NOT in the API
 # ---------------------------------------------------------------------------
@@ -559,6 +617,7 @@ api = {
     "_source_index": source_index,
     "_extends_map": _extends_map,
     "_interface_extends": _interface_extends,
+    "_interface_paths": _interface_paths,
     "unresolved": unresolved,
     "_meta": {
         "total_classes": len(all_classes),
