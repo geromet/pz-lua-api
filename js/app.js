@@ -44,6 +44,8 @@ function init() {
 
 // ── Page history ──────────────────────────────────────────────────────────
 function navPush(state) {
+  // Suppressed during applyState (history restoration must never write history)
+  if (_restoringState) return;
   // Drop any forward entries after current position
   navHistory.splice(navIndex + 1);
   // Skip duplicate of the current top entry
@@ -68,29 +70,34 @@ function captureState() {
 
 async function applyState(s) {
   const seq = ++navSeq;
-  if (s.type === 'placeholder') {
-    showGlobalsPanel(false);
-    document.getElementById('placeholder').style.display = 'flex';
-    return;
-  }
-  if (s.type === 'globals') {
-    switchTab('globals', /*noPush*/true);
-    return;
-  }
-  if (s.type === 'globalSource') {
-    // Set globals tab active without calling initGlobals (avoids table-view flash)
-    currentTab = 'globals';
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'globals'));
-    document.getElementById('sidebar').style.display = 'none';
-    showGlobalsPanel(true);
-    document.getElementById('placeholder').style.display = 'none';
-    await showGlobalSource(s.javaMethod, /*noPush*/true);
-    return;
-  }
-  if (s.type === 'class') {
-    switchTab('classes', /*noPush*/true);
-    selectClass(s.fqn, null, /*noPush*/true);
-    return;
+  _restoringState = true;
+  try {
+    if (s.type === 'placeholder') {
+      showGlobalsPanel(false);
+      document.getElementById('placeholder').style.display = 'flex';
+      return;
+    }
+    if (s.type === 'globals') {
+      switchTab('globals');
+      return;
+    }
+    if (s.type === 'globalSource') {
+      // Set globals tab active without calling initGlobals (avoids table-view flash)
+      currentTab = 'globals';
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'globals'));
+      document.getElementById('sidebar').style.display = 'none';
+      showGlobalsPanel(true);
+      document.getElementById('placeholder').style.display = 'none';
+      await showGlobalSource(s.javaMethod);
+      return;
+    }
+    if (s.type === 'class') {
+      switchTab('classes');
+      selectClass(s.fqn, null);
+      return;
+    }
+  } finally {
+    _restoringState = false;
   }
 }
 
@@ -121,11 +128,11 @@ function navigateList(dir) {
 }
 
 // ── Class selection ───────────────────────────────────────────────────────
-function selectClass(fqn, matchInfo, noPush) {
+function selectClass(fqn, matchInfo) {
   if (!API.classes[fqn]) return;
   currentClass = fqn;
 
-  if (!noPush) navPush({type: 'class', fqn});
+  navPush({type: 'class', fqn});
 
   // Auto-expand the package path in tree mode
   if (!currentSearch.trim()) {
@@ -162,14 +169,14 @@ function switchCtab(name) {
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
-function switchTab(tab, noPush) {
+function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.getElementById('sidebar').style.display = tab === 'classes' ? 'flex' : 'none';
   if (tab === 'globals') {
     initGlobals();
     location.hash = 'globals';
-    if (!noPush) navPush({type: 'globals'});
+    navPush({type: 'globals'});
   } else {
     showGlobalsPanel(false);
     if (currentClass) renderClassDetail(currentClass);
@@ -296,7 +303,7 @@ function setupEvents() {
     if (a.dataset.sourcePath) {
       showSourceByPath(a.dataset.sourcePath);
     } else if (a.dataset.fqn) {
-      switchTab('classes', /*noPush*/true); selectClass(a.dataset.fqn);
+      switchTab('classes'); selectClass(a.dataset.fqn);
     }
   });
 
@@ -310,13 +317,13 @@ function setupEvents() {
     const inheritLink = e.target.closest('a.inherit-link[data-fqn]');
     if (inheritLink) { e.preventDefault(); selectClass(inheritLink.dataset.fqn); return; }
 
-    // Inherited method links — show ancestor source without pushing nav
+    // Inherited method links — navigate to ancestor class and scroll to method in source
     const inheritMethod = e.target.closest('a.inherit-method-link[data-fqn]');
     if (inheritMethod) {
       e.preventDefault();
       const targetFqn = inheritMethod.dataset.fqn;
       const method    = inheritMethod.dataset.method;
-      selectClass(targetFqn, null, /*noPush*/true);
+      selectClass(targetFqn);
       showSource(API.classes[targetFqn], method);
       return;
     }

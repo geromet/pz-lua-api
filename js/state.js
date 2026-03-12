@@ -34,3 +34,8 @@ let sourceOnlyPaths = {};
 const navHistory = [];
 let navIndex = -1;
 let navSeq   = 0; // incremented on each applyState call; guards against stale async nav
+
+// Set to true during applyState so that navPush becomes a no-op.
+// This means every nav-aware function can push unconditionally;
+// only applyState (history restoration) suppresses the push.
+let _restoringState = false;
