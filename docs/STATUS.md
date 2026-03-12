@@ -12,7 +12,13 @@ This is the live tracker. Update it when:
 
 ## Open Bugs
 
-*(none)*
+| ID | File | Severity | Summary |
+|----|------|----------|---------|
+| BUG-010 | [BUG-010](Bugs/BUG-010-method-link-navigation-not-working.md) | Medium | inherit-method-link clicks do not navigate/scroll |
+| BUG-011 | [BUG-011](Bugs/BUG-011-empty-box-above-globals-view.md) | Low | Empty box visible above global functions view |
+| BUG-012 | [BUG-012](Bugs/BUG-012-globals-split-view-missing.md) | Medium | Globals tab has no split view (list + source side by side) |
+| BUG-013 | [BUG-013](Bugs/BUG-013-source-panel-shows-directory-listing.md) | High | Source panel shows directory listing HTML for zombie.characters.skills |
+| BUG-014 | [BUG-014](Bugs/BUG-014-globals-not-grouped.md) | Medium | Global functions not grouped in Globals tab |
 
 ---
 
