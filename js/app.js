@@ -26,6 +26,13 @@ function init() {
     (classBySimpleName[simple] = classBySimpleName[simple] || []).push(fqn);
   }
 
+  // Merge source-only index: classes not in the API but with available source files
+  for (const [simple, path] of Object.entries(API._source_index || {})) {
+    if (!classBySimpleName[simple]) {
+      sourceOnlyPaths[simple] = path;
+    }
+  }
+
   buildClassList();
   setupEvents();
   if (location.hash) {
@@ -249,8 +256,14 @@ function setupEvents() {
 
   // Delegated click for source class refs (both source panels)
   document.getElementById('content').addEventListener('click', e => {
-    const a = e.target.closest('a.src-class-ref[data-fqn]');
-    if (a) { e.preventDefault(); switchTab('classes'); selectClass(a.dataset.fqn); }
+    const a = e.target.closest('a.src-class-ref');
+    if (!a) return;
+    e.preventDefault();
+    if (a.dataset.sourcePath) {
+      showSourceByPath(a.dataset.sourcePath);
+    } else if (a.dataset.fqn) {
+      switchTab('classes'); selectClass(a.dataset.fqn);
+    }
   });
 
   // Delegated click for detail panel: method links + group label folding

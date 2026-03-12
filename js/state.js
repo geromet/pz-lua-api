@@ -27,6 +27,9 @@ let showNonCallable = false;
 // Simple-name → [fqn, …] lookup for source class-ref linking
 let classBySimpleName = {};
 
+// Simple-name → relative .java path for classes in _source_index (not in API)
+let sourceOnlyPaths = {};
+
 // Navigation history
 const navHistory = [];
 let navIndex   = -1;

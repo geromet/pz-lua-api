@@ -312,11 +312,39 @@ for i, java_file in enumerate(all_java_files):
 print(f"  @UsedFromLua-only (not setExposed): {lua_tagged_only}")
 
 # ---------------------------------------------------------------------------
-# Step 5: Save
+# Step 5: Build _source_index — source-linkable classes NOT in the API
+# ---------------------------------------------------------------------------
+print("Building source index...")
+
+def build_source_index(root):
+    """Map simple class name -> relative .java path for all .java files under root.
+    Skips the pz-lua-api-viewer/ subtree to avoid double-counting copied sources."""
+    viewer_dir = root / "pz-lua-api-viewer"
+    index = {}
+    for path in root.rglob("*.java"):
+        try:
+            path.relative_to(viewer_dir)
+            continue  # inside pz-lua-api-viewer/, skip
+        except ValueError:
+            pass
+        simple = path.stem
+        if simple not in index:
+            index[simple] = str(path.relative_to(root)).replace("\\", "/")
+    return index
+
+all_source_files = build_source_index(SRC_ROOT)
+api_simple_names = {v["simple_name"] for v in all_classes.values()}
+source_index = {simple: path for simple, path in all_source_files.items()
+                if simple not in api_simple_names}
+print(f"  Source-only entries: {len(source_index)}")
+
+# ---------------------------------------------------------------------------
+# Step 6: Save
 # ---------------------------------------------------------------------------
 api = {
     "classes": all_classes,
     "global_functions": global_functions,
+    "_source_index": source_index,
     "unresolved": unresolved,
     "_meta": {
         "total_classes": len(all_classes),
