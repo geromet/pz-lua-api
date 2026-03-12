@@ -1,6 +1,8 @@
+> **FIXED 2026-03-12** — Both loops in `scrollToMethod()` now skip lines where the method name is preceded by `.` (call site). Fixed as Step 0 of TASK-009.
+
 # BUG-008: scrollToMethod scrolls to a call site instead of the method declaration
 
-**Status:** Open
+**Status:** Fixed (2026-03-12)
 **Severity:** Medium
 **Touches:** `js/source-viewer.js` (`scrollToMethod`)
 **Related feature:** [FEAT-009](../Planned_Features/FEAT-009-deep-java-analysis.md), [FEAT-002](../Planned_Features/FEAT-002-method-call-linking-in-source.md)

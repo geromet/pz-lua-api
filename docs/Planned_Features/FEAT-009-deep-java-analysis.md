@@ -1,6 +1,6 @@
 # FEAT-009: Deeper Java analysis (wildcard imports, method-level linking)
 
-**Status:** Planned
+**Status:** Problem C implemented in TASK-009 (2026-03-12). Problem B (wildcard imports) still planned.
 **Priority:** Medium
 **Complexity:** High
 **Related:** `docs/Archive/task-01-source-coverage.md` Phase 2 (Problems B and C)

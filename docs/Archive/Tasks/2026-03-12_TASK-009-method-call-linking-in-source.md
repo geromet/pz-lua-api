@@ -1,6 +1,8 @@
+> **COMPLETED 2026-03-12** — Implemented in `js/source-viewer.js`. `scrollToMethod()` now skips call sites (`.` check). `linkClassRefs()` converted to index-based loop with `.methodName(` look-ahead; method links emitted as `inherit-method-link`. `app.js` #content delegated listener extended to handle method clicks from source panels.
+
 # TASK-009: Method-call linking in source viewer
 
-**Status:** Ready
+**Status:** Done
 **Estimated scope:** Medium
 **Touches:** `js/source-viewer.js`
 **Resolves:** [FEAT-009](../Planned_Features/FEAT-009-deep-java-analysis.md) Problem C, [FEAT-002](../Planned_Features/FEAT-002-method-call-linking-in-source.md)

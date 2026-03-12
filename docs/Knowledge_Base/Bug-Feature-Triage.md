@@ -57,7 +57,7 @@ In the **feature/task file**, add:
 
 | Bug | Related Feature | Status |
 |-----|----------------|--------|
-| [BUG-008](../Bugs/BUG-008-scrolltomethod-finds-call-site.md) | [FEAT-009](../Planned_Features/FEAT-009-deep-java-analysis.md) Problem C, [FEAT-002](../Planned_Features/FEAT-002-method-call-linking-in-source.md) | Bug fix bundled into TASK-009 |
+| [BUG-008](../Bugs/BUG-008-scrolltomethod-finds-call-site.md) | [FEAT-009](../Planned_Features/FEAT-009-deep-java-analysis.md) Problem C, [FEAT-002](../Planned_Features/FEAT-002-method-call-linking-in-source.md) | **Fixed 2026-03-12** — bundled into TASK-009 |
 | [BUG-009](../Bugs/BUG-009-placeholder-visible-over-panels.md) | [FEAT-006](../Planned_Features/FEAT-006-tab-bar-system.md) (would fix as side-effect) | Fix independently — FEAT-006 too large to block on |
 
 ## When to Update This File

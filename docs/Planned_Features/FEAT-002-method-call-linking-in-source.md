@@ -1,5 +1,6 @@
 # FEAT-002: Link method calls on already-linked type references in source viewer
 
+**Status:** Implemented in TASK-009 (2026-03-12)
 **Priority:** Low
 **Area:** Source Viewer (`js/source-viewer.js`)
 **Depends on:** BUG-001 fix (correct type linking must be reliable first)

@@ -301,15 +301,25 @@ function setupEvents() {
     if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); navGo(+1); }
   });
 
-  // Delegated click for source class refs (both source panels)
+  // Delegated click for source class refs and method links in source panels
   document.getElementById('content').addEventListener('click', e => {
     const a = e.target.closest('a.src-class-ref');
-    if (!a) return;
-    e.preventDefault();
-    if (a.dataset.sourcePath) {
-      showSourceByPath(a.dataset.sourcePath);
-    } else if (a.dataset.fqn) {
-      switchTab('classes'); selectClass(a.dataset.fqn);
+    if (a) {
+      e.preventDefault();
+      if (a.dataset.sourcePath) {
+        showSourceByPath(a.dataset.sourcePath);
+      } else if (a.dataset.fqn) {
+        switchTab('classes'); selectClass(a.dataset.fqn);
+      }
+      return;
+    }
+    // Method links inside source panels — same action as inherit-method-link in detail
+    // panel, but scoped to avoid double-handling with the detail-panel listener.
+    const ma = e.target.closest('a.inherit-method-link[data-fqn]');
+    if (ma && !ma.closest('#detail-panel')) {
+      e.preventDefault();
+      selectClass(ma.dataset.fqn);
+      showSource(API.classes[ma.dataset.fqn], ma.dataset.method);
     }
   });
 

@@ -142,7 +142,9 @@ function linkClassRefs(codeEl) {
     let changed = false;
     let skipNextIdent = false;
     const frag = document.createDocumentFragment();
-    for (const part of parts) {
+    let i = 0;
+    while (i < parts.length) {
+      const part = parts[i];
       const isIdent = /^\w+$/.test(part);
       if (!isIdent) {
         // Punctuation/operators reset the skip flag; pure whitespace does not.
@@ -150,6 +152,7 @@ function linkClassRefs(codeEl) {
         // while still allowing "Map<Type, NextType>" to link NextType correctly.
         if (/\S/.test(part)) skipNextIdent = false;
         frag.appendChild(document.createTextNode(part));
+        i++;
         continue;
       }
       // Identifier token: if the previous matched class token was the immediately
@@ -158,6 +161,7 @@ function linkClassRefs(codeEl) {
       if (skipNextIdent) {
         skipNextIdent = false;
         frag.appendChild(document.createTextNode(part));
+        i++;
         continue;
       }
       const isCapitalized = part.length > 1 && /^[A-Z]/.test(part);
@@ -184,9 +188,44 @@ function linkClassRefs(codeEl) {
         frag.appendChild(a);
         changed = true;
         skipNextIdent = true;
-      } else {
-        frag.appendChild(document.createTextNode(part));
+        i++;
+        // Look ahead for .methodName( pattern — only for API-linked classes (have fqn).
+        // Emits the method name as an inherit-method-link when the method is in the API.
+        if (fqns) {
+          const linkedFqn = a.dataset.fqn;
+          let j = i;
+          while (j < parts.length && /^\s*$/.test(parts[j])) j++;
+          if (j < parts.length && parts[j] === '.') {
+            const dotJ = j; j++;
+            while (j < parts.length && /^\s*$/.test(parts[j])) j++;
+            if (j < parts.length && /^\w+$/.test(parts[j])) {
+              const mName = parts[j]; const mJ = j; j++;
+              while (j < parts.length && /^\s*$/.test(parts[j])) j++;
+              if (j < parts.length && parts[j].startsWith('(')) {
+                const cls = API.classes[linkedFqn];
+                if (cls && cls.methods && cls.methods.some(m => m.name === mName)) {
+                  for (let k = i; k < dotJ; k++) frag.appendChild(document.createTextNode(parts[k]));
+                  frag.appendChild(document.createTextNode(parts[dotJ]));
+                  for (let k = dotJ + 1; k < mJ; k++) frag.appendChild(document.createTextNode(parts[k]));
+                  const ma = document.createElement('a');
+                  ma.className = 'inherit-method-link';
+                  ma.dataset.fqn = linkedFqn;
+                  ma.dataset.method = mName;
+                  ma.textContent = mName;
+                  frag.appendChild(ma);
+                  changed = true;
+                  skipNextIdent = false;
+                  i = mJ + 1;
+                  continue;
+                }
+              }
+            }
+          }
+        }
+        continue;
       }
+      frag.appendChild(document.createTextNode(part));
+      i++;
     }
     if (changed) textNode.parentNode.replaceChild(frag, textNode);
   }
@@ -296,11 +335,22 @@ function scrollToMethod(sourceText, methodName, panelEl, codeEl) {
   if (!codeEl)  codeEl  = document.getElementById('source-code');
 
   const lines = sourceText.split('\n');
-  const re = new RegExp(`(?:public|protected|private|static|\\s)\\s+\\S[^\\n]*?\\b${methodName}\\s*\\(`);
+  const reDecl = new RegExp(`(?:public|protected|private|static|\\s)\\s+\\S[^\\n]*?\\b${methodName}\\s*\\(`);
+  const reOcc  = new RegExp(`\\b${methodName}\\s*\\(`);
   let lineIdx = -1;
-  for (let i = 0; i < lines.length; i++) { if (re.test(lines[i])) { lineIdx = i; break; } }
+  for (let i = 0; i < lines.length; i++) {
+    if (!reDecl.test(lines[i])) continue;
+    const mIdx = lines[i].search(reOcc);
+    if (mIdx > 0 && lines[i].slice(0, mIdx).trimEnd().endsWith('.')) continue;
+    lineIdx = i; break;
+  }
   if (lineIdx === -1) {
-    for (let i = 0; i < lines.length; i++) { if (lines[i].includes(methodName + '(')) { lineIdx = i; break; } }
+    for (let i = 0; i < lines.length; i++) {
+      const mIdx = lines[i].indexOf(methodName + '(');
+      if (mIdx === -1) continue;
+      if (mIdx > 0 && lines[i].slice(0, mIdx).trimEnd().endsWith('.')) continue;
+      lineIdx = i; break;
+    }
   }
   if (lineIdx === -1) return;
 
