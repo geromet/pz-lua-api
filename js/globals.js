@@ -171,10 +171,12 @@ function updateGlobalsTable(filter) {
 async function showGlobalSource(javaMethod) {
   navPush({type: 'globalSource', javaMethod});
   const relPath = 'zombie/Lua/LuaManager.java';
-  document.getElementById('globals-header').style.display     = 'none';
-  document.getElementById('globals-nav').classList.add('visible');
-  document.getElementById('globals-src-title').textContent    = javaMethod;
-  document.getElementById('globals-table-wrap').style.display = 'none';
+  document.getElementById('globals-src-title').textContent = javaMethod;
+  if (!splitLayout) {
+    document.getElementById('globals-header').style.display     = 'none';
+    document.getElementById('globals-nav').classList.add('visible');
+    document.getElementById('globals-table-wrap').style.display = 'none';
+  }
   document.getElementById('globals-source-wrap').classList.add('visible');
 
   const codeEl = document.getElementById('globals-src-code');
@@ -195,8 +197,10 @@ async function showGlobalSource(javaMethod) {
 }
 
 function backToGlobalsTable() {
-  document.getElementById('globals-header').style.display     = '';
-  document.getElementById('globals-nav').classList.remove('visible');
-  document.getElementById('globals-table-wrap').style.display = '';
+  if (!splitLayout) {
+    document.getElementById('globals-header').style.display     = '';
+    document.getElementById('globals-nav').classList.remove('visible');
+    document.getElementById('globals-table-wrap').style.display = '';
+  }
   document.getElementById('globals-source-wrap').classList.remove('visible');
 }

@@ -204,6 +204,14 @@ function applySplitLayout(enabled) {
       switchCtab(currentCtab);
     }
   }
+  if (currentTab === 'globals') {
+    const srcWrap = document.getElementById('globals-source-wrap');
+    if (splitLayout && srcWrap?.classList.contains('visible')) {
+      document.getElementById('globals-table-wrap').style.display = '';
+      document.getElementById('globals-header').style.display     = '';
+      document.getElementById('globals-nav').classList.remove('visible');
+    }
+  }
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
