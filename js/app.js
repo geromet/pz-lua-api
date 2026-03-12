@@ -333,7 +333,9 @@ function setupEvents() {
     if (moreToggle) {
       const moreEl = moreToggle.nextElementSibling;
       if (moreEl?.classList.contains('inherit-more')) {
-        const hidden = moreEl.style.display === 'none';
+        // Use toggle text to determine state — avoids the CSS vs inline-style mismatch
+        // where style.display==='' even when CSS hides the element via display:none.
+        const hidden = moreToggle.textContent.startsWith('…');
         moreEl.style.display = hidden ? '' : 'none';
         moreToggle.textContent = hidden
           ? 'show less'

@@ -140,11 +140,29 @@ function linkClassRefs(codeEl) {
     if (!/[A-Z]/.test(text)) continue;
     const parts = text.split(/\b/);
     let changed = false;
+    let skipNextIdent = false;
     const frag = document.createDocumentFragment();
     for (const part of parts) {
+      const isIdent = /^\w+$/.test(part);
+      if (!isIdent) {
+        // Punctuation/operators reset the skip flag; pure whitespace does not.
+        // This preserves "Type name" skipping across the space between them,
+        // while still allowing "Map<Type, NextType>" to link NextType correctly.
+        if (/\S/.test(part)) skipNextIdent = false;
+        frag.appendChild(document.createTextNode(part));
+        continue;
+      }
+      // Identifier token: if the previous matched class token was the immediately
+      // preceding identifier (no intervening punctuation), this is a variable/field
+      // name — emit as plain text.
+      if (skipNextIdent) {
+        skipNextIdent = false;
+        frag.appendChild(document.createTextNode(part));
+        continue;
+      }
       const isCapitalized = part.length > 1 && /^[A-Z]/.test(part);
-      const fqns     = isCapitalized ? classBySimpleName[part] : null;
-      const srcPath  = !fqns && isCapitalized ? sourceOnlyPaths[part] : null;
+      const fqns    = isCapitalized ? classBySimpleName[part] : null;
+      const srcPath = !fqns && isCapitalized ? sourceOnlyPaths[part] : null;
       if (fqns || srcPath) {
         const a = document.createElement('a');
         a.className = 'src-class-ref';
@@ -158,6 +176,7 @@ function linkClassRefs(codeEl) {
         }
         frag.appendChild(a);
         changed = true;
+        skipNextIdent = true;
       } else {
         frag.appendChild(document.createTextNode(part));
       }

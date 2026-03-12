@@ -161,7 +161,9 @@ function ifaceLink(fqn) {
   const simple = fqn.split('.').pop();
   if (API.classes[fqn])
     return `<a class="inherit-link" data-fqn="${esc(fqn)}">${esc(simple)}</a>`;
-  const srcPath = API._source_index?.[simple];
+  // Check FQN-keyed interface path first (avoids simple-name collisions with API classes),
+  // then fall back to simple-name lookup in _source_index.
+  const srcPath = API._interface_paths?.[fqn] || API._source_index?.[simple];
   if (srcPath)
     return `<a class="src-class-ref" data-source-path="${esc(srcPath)}" title="${esc(fqn)}">${esc(simple)}</a>`;
   return `<span class="inherit-tree-item-ext" title="${esc(fqn)}">${esc(simple)}</span>`;
@@ -244,13 +246,54 @@ function renderImplGroups(groups) {
   </div>`;
 }
 
+function buildNestedGroups(cls, fqn) {
+  const seen       = new Set();
+  const groups     = [];
+  let curFqn       = fqn;
+  let curCls       = cls;
+  let isDirect     = true;
+  const clsVisited = new Set();
+
+  while (curFqn && !clsVisited.has(curFqn)) {
+    clsVisited.add(curFqn);
+    const types = (curCls?.nested_types || []).filter(t => !seen.has(t.fqn));
+    types.forEach(t => seen.add(t.fqn));
+    if (types.length) groups.push({fromFqn: curFqn, isDirect, types});
+    curFqn   = curCls?.extends || API._extends_map?.[curFqn];
+    curCls   = API.classes[curFqn];
+    isDirect = false;
+  }
+  return groups;
+}
+
+function renderNestedGroups(groups) {
+  if (!groups.length) return '';
+  const rows = groups.map(g => {
+    const label = g.isDirect
+      ? `Declared in ${esc(g.fromFqn.split('.').pop())}`
+      : `Inherited from ${esc(g.fromFqn.split('.').pop())}`;
+    const items = g.types.map(t => {
+      const badge = `<span class="tag tag-${t.kind}">${esc(t.kind)}</span>`;
+      return ifaceLink(t.fqn) + ' ' + badge;
+    }).join(' &nbsp; ');
+    return `<div class="impl-group">
+      <span class="impl-group-header">${label}:</span><span class="impl-items">${items}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="inherit-meta impl-section">
+    <span class="inherit-label">Nested Classes:</span>${rows}
+  </div>`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function renderInheritHeader(cls, fqn) {
   const hasExtends    = !!cls.extends;
   const implGroups    = buildImplGroups(cls, fqn);
+  const nestedGroups  = buildNestedGroups(cls, fqn);
   const hasSubclasses = (cls.subclasses || []).length > 0;
-  if (!hasExtends && !implGroups.length && !hasSubclasses) return '';
+  if (!hasExtends && !implGroups.length && !nestedGroups.length && !hasSubclasses) return '';
 
   let html = '<div class="inherit-header">';
 
@@ -285,6 +328,9 @@ function renderInheritHeader(cls, fqn) {
 
   // Implemented interfaces — grouped by chain position and interface extends
   html += renderImplGroups(implGroups);
+
+  // Nested classes / interfaces / enums declared in this class or ancestors
+  html += renderNestedGroups(nestedGroups);
 
   // Direct known subclasses (truncated with toggle)
   if (hasSubclasses) {
