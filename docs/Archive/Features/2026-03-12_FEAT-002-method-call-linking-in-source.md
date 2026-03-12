@@ -1,3 +1,5 @@
+> **COMPLETED 2026-03-12** — Implemented in TASK-009. `linkClassRefs()` now emits `inherit-method-link` for `ClassName.method(` patterns.
+
 # FEAT-002: Link method calls on already-linked type references in source viewer
 
 **Status:** Implemented in TASK-009 (2026-03-12)

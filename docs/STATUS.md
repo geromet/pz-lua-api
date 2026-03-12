@@ -16,26 +16,26 @@ This is the live tracker. Update it when:
 
 ---
 
-## Active Tasks
-
-*(none — pick from Planned Features or open bugs)*
-
----
-
-## Planned Features (priority order)
+## Active Tasks (priority order)
 
 | ID | File | Priority | Summary |
 |----|------|----------|---------|
-| FEAT-006 | [FEAT-006](Planned_Features/FEAT-006-tab-bar-system.md) | High | Browser-style tab bar for multiple open classes |
-| FEAT-003 | [FEAT-003](Planned_Features/FEAT-003-side-by-side-panels.md) | High | Side-by-side Detail + Source panels |
-| FEAT-010 | [FEAT-010](Planned_Features/FEAT-010-comments-descriptions.md) | Medium | Extract and display Javadoc comments |
-| FEAT-009 | [FEAT-009](Planned_Features/FEAT-009-deep-java-analysis.md) | Medium | Wildcard import fallback + method-call linking |
-| FEAT-013 | [FEAT-013](Planned_Features/FEAT-013-search-improvements.md) | Medium | Search highlighting, scope toggle, clear button |
-| FEAT-011 | [FEAT-011](Planned_Features/FEAT-011-globals-list-redesign.md) | Medium | Globals tab redesign (sticky headers, group memory) |
-| FEAT-005 | [FEAT-005](Planned_Features/FEAT-005-version-selector.md) | Low–Medium | Version selector + multi-version API storage |
-| FEAT-004 | [FEAT-004](Planned_Features/FEAT-004-resizable-panels.md) | Medium | Draggable resize handles between panels |
-| FEAT-012 | [FEAT-012](Planned_Features/FEAT-012-sticky-column-headers.md) | Low | Sticky column headers in tables |
-| FEAT-008 | [FEAT-008](Planned_Features/FEAT-008-build-time-precomputation.md) | Low | Build-time precomputation for faster startup |
-| FEAT-014 | [FEAT-014](Planned_Features/FEAT-014-hover-preview.md) | Low | Hover preview window for class/method links |
-| FEAT-002 | [FEAT-002](Planned_Features/FEAT-002-method-call-linking-in-source.md) | Low | Method-call linking in source (see FEAT-009) |
-| FEAT-007 | [FEAT-007](Planned_Features/FEAT-007-middle-mouse-new-tab.md) | Low | Middle-click to open class in new tab |
+| TASK-011 | [TASK-011](Tasks/TASK-011-side-by-side-panels.md) | High | Side-by-side Detail + Source panel layout (FEAT-003) |
+| TASK-012 | [TASK-012](Tasks/TASK-012-tab-bar-system.md) | High | Tab bar system — do after TASK-011 (FEAT-006) |
+| TASK-013 | [TASK-013](Tasks/TASK-013-search-improvements.md) | Medium | Search highlight + clear buttons (FEAT-013) |
+| TASK-014 | [TASK-014](Tasks/TASK-014-globals-redesign-and-sticky-headers.md) | Medium | Globals sticky headers + fold memory (FEAT-011, FEAT-012) |
+| TASK-015 | [TASK-015](Tasks/TASK-015-wildcard-import-fallback.md) | Medium | Wildcard import fallback for class-ref linking (FEAT-009 Problem B) |
+| TASK-016 | [TASK-016](Tasks/TASK-016-javadoc-extraction.md) | Medium | Extract and display Javadoc comments (FEAT-010) |
+| TASK-017 | [TASK-017](Tasks/TASK-017-build-time-precomputation.md) | Low | Build-time precomputation for faster startup (FEAT-008) |
+| TASK-018 | [TASK-018](Tasks/TASK-018-version-selector.md) | Low–Medium | Version selector + multi-version API storage (FEAT-005) |
+
+---
+
+## Planned Features — Blocked (waiting on other tasks)
+
+| ID | File | Blocked by | Summary |
+|----|------|------------|---------|
+| FEAT-004 | [FEAT-004](Planned_Features/FEAT-004-resizable-panels.md) | TASK-011 | Draggable resize handles (needs split layout first) |
+| FEAT-007 | [FEAT-007](Planned_Features/FEAT-007-middle-mouse-new-tab.md) | TASK-012 | Middle-click to open in new tab (needs tab bar first) |
+| FEAT-014 | [FEAT-014](Planned_Features/FEAT-014-hover-preview.md) | TASK-012 | Hover preview window (interaction model changes with tabs) |
+
