@@ -196,9 +196,12 @@ function renderInheritHeader(cls, fqn) {
   if (hasImplements) {
     const links = (cls.implements || []).map(iface => {
       const isimple = iface.split('.').pop();
-      return API.classes[iface]
-        ? `<a class="inherit-link" data-fqn="${esc(iface)}">${esc(isimple)}</a>`
-        : `<span class="inherit-tree-item-ext">${esc(isimple)}</span>`;
+      if (API.classes[iface])
+        return `<a class="inherit-link" data-fqn="${esc(iface)}">${esc(isimple)}</a>`;
+      const srcPath = API._source_index?.[isimple];
+      if (srcPath)
+        return `<a class="src-class-ref" data-source-path="${esc(srcPath)}" title="${esc(iface)}">${esc(isimple)}</a>`;
+      return `<span class="inherit-tree-item-ext">${esc(isimple)}</span>`;
     });
     html += `<div class="inherit-meta"><span class="inherit-label">Implements:</span>${links.join(', ')}</div>`;
   }
@@ -207,9 +210,14 @@ function renderInheritHeader(cls, fqn) {
   if (hasSubclasses) {
     const subs    = cls.subclasses;
     const MAX     = 10;
-    const mkLink  = f => API.classes[f]
-      ? `<a class="inherit-link" data-fqn="${esc(f)}">${esc(f.split('.').pop())}</a>`
-      : `<span class="inherit-tree-item-ext" title="${esc(f)}">${esc(f.split('.').pop())}</span>`;
+    const mkLink  = f => {
+      if (API.classes[f])
+        return `<a class="inherit-link" data-fqn="${esc(f)}">${esc(f.split('.').pop())}</a>`;
+      const srcPath = API._source_index?.[f.split('.').pop()];
+      if (srcPath)
+        return `<a class="src-class-ref" data-source-path="${esc(srcPath)}" title="${esc(f)}">${esc(f.split('.').pop())}</a>`;
+      return `<span class="inherit-tree-item-ext" title="${esc(f)}">${esc(f.split('.').pop())}</span>`;
+    };
     let subHtml;
     if (subs.length <= MAX) {
       subHtml = subs.map(mkLink).join(', ');
@@ -252,12 +260,18 @@ function renderInheritedMethods(cls, fqn, filterStr) {
     if (s) inherited = inherited.filter(m => m.name.toLowerCase().includes(s));
 
     if (inherited.length > 0) {
-      const links = inherited.map(m =>
-        `<a class="inherit-method-link" data-fqn="${esc(ancestorFqn)}" data-method="${esc(m.name)}">${esc(m.name)}</a>`
-      ).join(', ');
+      const rows = inherited.map(m => {
+        const staticTag = m.static ? `<span class="tag-static" style="margin-left:5px">static</span>` : '';
+        return `<tr>
+          <td><a class="inherit-method-link" data-fqn="${esc(ancestorFqn)}" data-method="${esc(m.name)}">${esc(m.name)}</a>${staticTag}</td>
+          <td><span class="return-type">${esc(m.return_type)}</span></td>
+          <td><span class="params-cell">${renderParams(m.params) || '<span style="color:#444">—</span>'}</span></td>
+        </tr>`;
+      }).join('');
+      const table = `<table><thead><tr><th>Method</th><th>Returns</th><th>Parameters</th></tr></thead><tbody>${rows}</tbody></table>`;
       html += `<div class="method-group inherited">
-        <div class="group-label other-label"><span class="group-arrow">▼</span>Methods inherited from <a class="inherit-link" data-fqn="${esc(ancestorFqn)}">${esc(ancestorFqn)}</a></div>
-        <div class="group-body"><div class="inherited-methods-list">${links}</div></div>
+        <div class="group-label other-label"><span class="group-arrow">▼</span>Methods inherited from <a class="inherit-link" data-fqn="${esc(ancestorFqn)}">${esc(ancestorFqn.split('.').pop())}</a> <span style="color:var(--text-dim);font-size:11px">${esc(ancestorFqn)}</span></div>
+        <div class="group-body">${table}</div>
       </div>`;
     }
 
