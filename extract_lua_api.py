@@ -286,7 +286,9 @@ print(f"  setExposed resolved: {len(all_classes)}")
 # ---------------------------------------------------------------------------
 print("Scanning for @UsedFromLua classes not in setExposed...")
 lua_tagged_only = 0
-all_java_files = list(SRC_ROOT.rglob("*.java"))
+_viewer_dir = SRC_ROOT / "pz-lua-api-viewer"
+all_java_files = [p for p in SRC_ROOT.rglob("*.java")
+                  if not p.is_relative_to(_viewer_dir)]
 for i, java_file in enumerate(all_java_files):
     if i % 200 == 0: print(f"  {i}/{len(all_java_files)}...")
     src = java_file.read_text(errors="ignore")
