@@ -19,8 +19,6 @@ function initGlobals() {
   fresh.value = '';
   fresh.addEventListener('input', () => updateGlobalsTable(fresh.value));
   fresh.focus();
-  document.getElementById('btn-luamgr-src').onclick = () =>
-    showSourceByPath('zombie/Lua/LuaManager.java');
 }
 
 function updateGlobalsTable(filter) {
@@ -73,14 +71,14 @@ function updateGlobalsTable(filter) {
     }
     if (section !== lastSection) {
       rows += `<tr class="globals-sec-header" data-domkey="${esc(domKey)}" data-seckey="${esc(secKey)}"${domFolded ? ' style="display:none"' : ''}>
-        <td colspan="3" style="padding-left:16px"><span class="ggh-arrow">${secFolded ? '▶' : '▼'}</span>
+        <td colspan="3" style="padding-left:10px"><span class="ggh-arrow">${secFolded ? '▶' : '▼'}</span>
         <span class="ggh-name" style="font-weight:600">${esc(section)}</span></td></tr>`;
       lastSection = section; lastGroup = null;
     }
     if (group !== lastGroup) {
       const grpHidden = domFolded || secFolded;
       rows += `<tr class="globals-grp-header" data-domkey="${esc(domKey)}" data-seckey="${esc(secKey)}" data-grpkey="${esc(grpKey)}"${grpHidden ? ' style="display:none"' : ''}>
-        <td colspan="3" style="padding-left:32px"><span class="ggh-arrow">${grpFolded ? '▶' : '▼'}</span>
+        <td colspan="3" style="padding-left:20px"><span class="ggh-arrow">${grpFolded ? '▶' : '▼'}</span>
         <span class="ggh-name" style="font-weight:normal;color:var(--accent)">${esc(group)}</span></td></tr>`;
       lastGroup = group;
     }
@@ -89,7 +87,7 @@ function updateGlobalsTable(filter) {
       ? `<span style="color:var(--text-dim);font-size:11px;margin-left:8px">← ${esc(g.java_method)}</span>`
       : '';
     rows += `<tr class="gfn-row" data-domkey="${esc(domKey)}" data-seckey="${esc(secKey)}" data-grpkey="${esc(grpKey)}"${fnHidden ? ' style="display:none"' : ''}>
-      <td style="padding-left:48px"><a class="gfn-link" data-method="${esc(g.java_method)}">${esc(g.lua_name)}</a>${alias}</td>
+      <td style="padding-left:30px"><a class="gfn-link" data-method="${esc(g.java_method)}">${esc(g.lua_name)}</a>${alias}</td>
       <td><span class="return-type">${esc(g.return_type || '?')}</span></td>
       <td><span class="params-cell">${renderParams(g.params) || '<span style="color:#444">—</span>'}</span></td>
     </tr>`;
@@ -171,11 +169,9 @@ function updateGlobalsTable(filter) {
 async function showGlobalSource(javaMethod) {
   navPush({type: 'globalSource', javaMethod});
   const relPath = 'zombie/Lua/LuaManager.java';
-  document.getElementById('globals-header').style.display     = 'none';
-  document.getElementById('globals-nav').classList.add('visible');
-  document.getElementById('globals-src-title').textContent    = javaMethod;
-  document.getElementById('globals-table-wrap').style.display = 'none';
-  document.getElementById('globals-source-wrap').classList.add('visible');
+  document.getElementById('globals-src-title').textContent = javaMethod;
+  document.getElementById('globals-source-wrap').classList.add('has-source');
+  document.getElementById('gsrc-toolbar').style.display = '';
 
   const codeEl = document.getElementById('globals-src-code');
   codeEl.textContent = 'Loading…';
@@ -195,8 +191,8 @@ async function showGlobalSource(javaMethod) {
 }
 
 function backToGlobalsTable() {
-  document.getElementById('globals-header').style.display     = '';
-  document.getElementById('globals-nav').classList.remove('visible');
-  document.getElementById('globals-table-wrap').style.display = '';
-  document.getElementById('globals-source-wrap').classList.remove('visible');
+  document.getElementById('globals-source-wrap').classList.remove('has-source');
+  document.getElementById('gsrc-toolbar').style.display = 'none';
+  document.getElementById('globals-src-title').textContent = '';
+  document.getElementById('globals-src-code').textContent = '';
 }
