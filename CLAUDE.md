@@ -88,8 +88,8 @@ When the user says "work on the tasks" (or similar), do this without further cla
    - Read every file the task says it touches.
    - Implement per the plan; verify acceptance criteria.
    - If the task modified `extract_lua_api.py`, run the extractor and copy the JSON immediately (see "Regenerating the API").
-   - When done, **move** (never delete) the task file to `docs/Archive/` and prepend a `> **COMPLETED date** — ...` blockquote. Copy the full original content — do not replace it with a stub.
-   - If the task resolves a bug, **move** that bug file to `docs/Archive/` too with a `> **FIXED date** — ...` blockquote prepended. Same rule: full content preserved, never deleted.
+   - When done, prepend a `> **COMPLETED YYYY-MM-DD** — ...` blockquote at the very top of the task file (full content preserved — never replace with a stub), then run: `python docs/archive.py docs/Tasks/TASK-NNN-slug.md`
+   - If the task resolves a bug, prepend a `> **FIXED YYYY-MM-DD** — ...` blockquote at the top of the bug file (same rule: full content), then run: `python docs/archive.py docs/Bugs/BUG-NNN-slug.md`
    - Update `docs/STATUS.md` — remove the task from "Active Tasks" and the bug from "Open Bugs".
 4. **If a task is blocked** (missing data, unclear spec, prerequisite not met), note the blocker in the task file, leave it in `docs/Tasks/`, and move to the next task.
 5. **After all tasks** in a session are done:
