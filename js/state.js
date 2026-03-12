@@ -32,5 +32,5 @@ let sourceOnlyPaths = {};
 
 // Navigation history
 const navHistory = [];
-let navIndex   = -1;
-let navJumping = false; // true while back/forward is restoring state
+let navIndex = -1;
+let navSeq   = 0; // incremented on each applyState call; guards against stale async nav

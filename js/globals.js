@@ -67,12 +67,16 @@ function updateGlobalsTable(filter) {
   });
 
   document.querySelectorAll('#globals-table-wrap .gfn-link').forEach(a => {
-    a.addEventListener('click', e => { e.preventDefault(); showGlobalSource(a.dataset.method); });
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      navPush({type: 'globalSource', javaMethod: a.dataset.method});
+      showGlobalSource(a.dataset.method, /*noPush*/true);
+    });
   });
 }
 
-async function showGlobalSource(javaMethod) {
-  navPush({type: 'globalSource', javaMethod});
+async function showGlobalSource(javaMethod, noPush) {
+  if (!noPush) navPush({type: 'globalSource', javaMethod});
   const relPath = 'zombie/Lua/LuaManager.java';
   document.getElementById('globals-header').style.display     = 'none';
   document.getElementById('globals-nav').classList.add('visible');

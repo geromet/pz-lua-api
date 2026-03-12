@@ -5,7 +5,7 @@ Work through these in order. Each file is self-contained.
 | # | File | Task | Status | Touches |
 |---|------|------|--------|---------|
 | 1 | `task-01-source-coverage.md` | Fix missing classes + deep call linking | ✅ Done (phase 1) | `extract_lua_api.py`, `prepare_sources.py`, `js/app.js`, `js/state.js`, `js/source-viewer.js` |
-| 2 | `task-02-nav-resilience.md`  | Refactor navigation state to be resilient | — | `js/state.js`, `js/app.js`, `js/globals.js` |
+| 2 | `task-02-nav-resilience.md`  | Refactor navigation state to be resilient | ✅ Done | `js/state.js`, `js/app.js`, `js/globals.js` |
 | 3 | `task-03-inheritance.md`     | Inheritance display (extends/implements/subclasses/inherited methods) | — | `extract_lua_api.py`, `js/class-detail.js`, `app.css` |
 
 ## Task 01 — What was done
@@ -23,4 +23,16 @@ Work through these in order. Each file is self-contained.
 See task-01-source-coverage.md Problem B (wildcard import fallback) and Problem C (method-level linking).
 These are lower priority — phase 1 covers the main class-linking gap.
 
-Start with task 02 or 03 next.
+## Task 02 — What was done
+- `js/state.js`: removed `navJumping`, added `navSeq` counter
+- `js/app.js`: added `captureState()` (reads current UI into state object)
+- `js/app.js`: added `applyState(s)` (restores UI from state, never pushes nav)
+  - `globalSource` case sets tab active directly, skips `initGlobals()` to avoid table-view flash
+- `js/app.js`: `navGo` is now async, just sets navIndex and calls `applyState`
+- `js/app.js`: `navPush` no longer has `navJumping` guard; duplicate check covers fqn+javaMethod
+- `js/app.js`: `selectClass(fqn, matchInfo, noPush)` — guards navPush with noPush param
+- `js/app.js`: `switchTab(tab, noPush)` — guards navPush with noPush param
+- `js/app.js`: src-class-ref click now uses `switchTab('classes', noPush=true)` to avoid double-push
+- `js/globals.js`: `showGlobalSource(javaMethod, noPush)` — navPush moved to click handler
+
+Start with task 03 next.

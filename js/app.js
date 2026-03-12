@@ -44,28 +44,62 @@ function init() {
 
 // ── Page history ──────────────────────────────────────────────────────────
 function navPush(state) {
-  if (navJumping) return;
   // Drop any forward entries after current position
   navHistory.splice(navIndex + 1);
   // Skip duplicate of the current top entry
   const top = navHistory[navHistory.length - 1];
-  if (top && top.type === state.type && top.fqn === state.fqn) return;
+  if (top && top.type === state.type && top.fqn === state.fqn && top.javaMethod === state.javaMethod) return;
   navHistory.push(state);
   navIndex = navHistory.length - 1;
   updateNavButtons();
 }
 
-function navGo(delta) {
+function captureState() {
+  if (currentTab === 'globals') {
+    const srcWrap = document.getElementById('globals-source-wrap');
+    if (srcWrap?.classList.contains('visible')) {
+      return { type: 'globalSource', javaMethod: document.getElementById('globals-src-title').textContent };
+    }
+    return { type: 'globals' };
+  }
+  if (!currentClass) return { type: 'placeholder' };
+  return { type: 'class', fqn: currentClass, ctab: currentCtab };
+}
+
+async function applyState(s) {
+  const seq = ++navSeq;
+  if (s.type === 'placeholder') {
+    showGlobalsPanel(false);
+    document.getElementById('placeholder').style.display = 'flex';
+    return;
+  }
+  if (s.type === 'globals') {
+    switchTab('globals', /*noPush*/true);
+    return;
+  }
+  if (s.type === 'globalSource') {
+    // Set globals tab active without calling initGlobals (avoids table-view flash)
+    currentTab = 'globals';
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'globals'));
+    document.getElementById('sidebar').style.display = 'none';
+    showGlobalsPanel(true);
+    document.getElementById('placeholder').style.display = 'none';
+    await showGlobalSource(s.javaMethod, /*noPush*/true);
+    return;
+  }
+  if (s.type === 'class') {
+    switchTab('classes', /*noPush*/true);
+    selectClass(s.fqn, null, /*noPush*/true);
+    return;
+  }
+}
+
+async function navGo(delta) {
   const next = navIndex + delta;
   if (next < 0 || next >= navHistory.length) return;
-  navIndex   = next;
-  navJumping = true;
-  const s = navHistory[navIndex];
-  if (s.type === 'globals') switchTab('globals');
-  else if (s.type === 'globalSource') { switchTab('globals'); showGlobalSource(s.javaMethod); }
-  else { switchTab('classes'); selectClass(s.fqn); }
-  navJumping = false;
+  navIndex = next;
   updateNavButtons();
+  await applyState(navHistory[navIndex]);
 }
 
 function updateNavButtons() {
@@ -87,11 +121,11 @@ function navigateList(dir) {
 }
 
 // ── Class selection ───────────────────────────────────────────────────────
-function selectClass(fqn, matchInfo) {
+function selectClass(fqn, matchInfo, noPush) {
   if (!API.classes[fqn]) return;
   currentClass = fqn;
 
-  navPush({type: 'class', fqn});
+  if (!noPush) navPush({type: 'class', fqn});
 
   // Auto-expand the package path in tree mode
   if (!currentSearch.trim()) {
@@ -128,14 +162,14 @@ function switchCtab(name) {
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────
-function switchTab(tab) {
+function switchTab(tab, noPush) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
   document.getElementById('sidebar').style.display = tab === 'classes' ? 'flex' : 'none';
   if (tab === 'globals') {
     initGlobals();
     location.hash = 'globals';
-    navPush({type: 'globals'});
+    if (!noPush) navPush({type: 'globals'});
   } else {
     showGlobalsPanel(false);
     if (currentClass) renderClassDetail(currentClass);
@@ -262,7 +296,7 @@ function setupEvents() {
     if (a.dataset.sourcePath) {
       showSourceByPath(a.dataset.sourcePath);
     } else if (a.dataset.fqn) {
-      switchTab('classes'); selectClass(a.dataset.fqn);
+      switchTab('classes', /*noPush*/true); selectClass(a.dataset.fqn);
     }
   });
 
