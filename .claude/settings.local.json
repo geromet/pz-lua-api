@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(javap:*)",
+      "Bash(python:*)",
+      "Bash(node -e \"\n'use strict';\n// Simulate what the browser does with the JSON\nconst json = JSON.stringify({extends: 'zombie.iso.IsoMovingObject', implements: ['foo'], subclasses: ['bar']});\nconst cls = JSON.parse(json);\nconsole.log('cls.extends:', cls.extends);\nconsole.log('cls[\\\"extends\\\"]:', cls['extends']);\nconsole.log('both equal:', cls.extends === cls['extends']);\nconst hasExtends = !!cls.extends;\nconsole.log('hasExtends:', hasExtends);\n// Optional chaining\nconst API = {classes: {}};\nAPI.classes['test'] = cls;\nconsole.log('optional chain:', API.classes['test']?.extends);\n\")",
+      "Bash(cd \"E:\\\\SteamLibrary\\\\steamapps\\\\common\\\\ProjectZomboid\\\\projectzomboid\\\\pz-lua-api-viewer\\\\docs\" && mv \"Planned_Features/FEAT-001-nested-classes-display.md\" \"Archive/FEAT-001-nested-classes-display.md\")"
+    ]
+  }
+
+}
