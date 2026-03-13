@@ -25,7 +25,7 @@
 
 - [x] **S01: Unblocked Improvements** `risk:low` `depends:[]`
   > After this: build-time precomputed data loads on page init; resizable panels work in live browser
-- [ ] **S02: Tab Enhancements** `risk:medium` `depends:[S01]`
+- [x] **S02: Tab Enhancements** `risk:medium` `depends:[S01]`
   > After this: middle-click opens classes in new tab; hover preview card shows on link hover
 - [ ] **S03: Version Selector** `risk:medium` `depends:[S02]`
   > After this: version dropdown appears in toolbar; switching versions reloads API data; URL `?v=` param works
@@ -41,3 +41,10 @@ This milestone is complete only when all are true:
 - `pz-lua-api-viewer/docs/STATUS.md` updated
 - All completed tasks archived
 - Changes committed and pushed to `liability-machine`
+
+## Current State
+
+- [x] **S01:** build-time precomputed data loads on page init; resizable panels work in live browser
+- [x] **S02:** middle-click opens classes in new tab; hover preview card shows on link hover
+- [ ] **S03:** version dropdown appears in toolbar; switching versions reloads API data; URL `?v=` param works
+- [ ] **S04:** methods/fields with Javadoc show collapsible doc toggles (blocked — waiting on original PZ sources)

@@ -27,21 +27,21 @@
 
 ## Tasks
 
-- [ ] **T01: Extractor versioned output** `est:1h`
+- [x] **T01: Extractor versioned output** `est:1h`
   - Why: Implements the server-side half of FEAT-005 / TASK-018 Step 1
   - Files: `pz-lua-api-viewer/extract_lua_api.py`
   - Do: Read `pz-lua-api-viewer/docs/Tasks/TASK-018-version-selector.md` Step 1. Detect PZ build number (try `version.txt`, `.properties` files, EXE metadata, fall back to `"unknown"`). Write `lua_api_<build>.json` to `pz-lua-api-viewer/versions/`. Write/update `pz-lua-api-viewer/versions/versions.json` with `[{"id": "<build>", "label": "Build <build>", "file": "versions/lua_api_<build>.json"}]`. Keep writing `lua_api.json` at root for backwards compatibility.
   - Verify: Run extractor; confirm `versions/versions.json` and `versions/lua_api_*.json` exist
   - Done when: Both files exist; extractor exits cleanly; existing `lua_api.json` still present
 
-- [ ] **T02: Frontend version dropdown and switching** `est:2h`
+- [x] **T02: Frontend version dropdown and switching** `est:2h`
   - Why: Implements the UI half of FEAT-005 / TASK-018 Steps 2–4
   - Files: `pz-lua-api-viewer/index.html`, `pz-lua-api-viewer/js/app.js`, `pz-lua-api-viewer/js/state.js`, `pz-lua-api-viewer/app.css`
   - Do: Read TASK-018 Steps 2–4. Add `<select id="version-select">` to toolbar. On init, try fetching `versions/versions.json`; if present, populate dropdown; if absent, hide dropdown. Selecting a version fetches the versioned JSON, replaces `window.API`, and calls `reinit()` (or full `init()` equivalent). Handle `?v=<build>` query param on load: select the matching version. Handle `#ClassName` after version switch. Store selected version in `localStorage`.
   - Verify: Browser screenshot showing dropdown; select different entry → class list reloads; URL `?v=<build>#IsoPlayer` works
   - Done when: All acceptance criteria in TASK-018 pass; no console errors
 
-- [ ] **T03: Update docs and commit S03** `est:10m`
+- [x] **T03: Update docs and commit S03** `est:10m`
   - Why: Keep STATUS.md accurate; archive TASK-018; lock in S03
   - Files: `pz-lua-api-viewer/docs/STATUS.md`, `pz-lua-api-viewer/docs/Tasks/TASK-018-version-selector.md`
   - Do: Prepend completion blockquote to TASK-018; run `python docs/archive.py docs/Tasks/TASK-018-version-selector.md`. Update STATUS.md. Commit and push.
