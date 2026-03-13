@@ -197,7 +197,13 @@ function buildClassList() {
         `<span class="dot ${cls.lua_tagged  ? 'dot-tagged'  : 'dot-empty'}"></span>` +
         `<span class="dot ${htm             ? 'dot-blue'    : 'dot-empty'}"></span>` +
         `</div>${matchInfo ? `<span class="ci-match">${matchInfo}</span>` : ''}</div>`;
-      div.addEventListener('click', () => selectClass(fqn, matchInfo));
+      div.addEventListener('click', e => {
+    // Middle-click or Ctrl+click → open in new tab
+    if (e.button === 1 || e.ctrlKey) {
+      if (div.dataset.fqn) { openNewTab(div.dataset.fqn); e.preventDefault(); return; }
+    }
+    selectClass(div.dataset.fqn, matchInfo);
+  });
       frag.appendChild(div);
     }
     list.appendChild(frag);
@@ -217,6 +223,12 @@ function buildClassList() {
     label.addEventListener('click', () => togglePackage(label.dataset.path));
   });
   list.querySelectorAll('.class-item').forEach(item => {
-    item.addEventListener('click', () => selectClass(item.dataset.fqn, null));
+    item.addEventListener('click', e => {
+      // Middle-click or Ctrl+click → open in new tab
+      if (e.button === 1 || e.ctrlKey) {
+        if (item.dataset.fqn) { openNewTab(item.dataset.fqn); e.preventDefault(); return; }
+      }
+      selectClass(item.dataset.fqn, null);
+    });
   });
 }

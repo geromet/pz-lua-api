@@ -20,9 +20,41 @@ import json
 import pathlib
 import javalang
 
-SRC_ROOT = pathlib.Path("E:/SteamLibrary/steamapps/common/ProjectZomboid/projectzomboid")
-LUA_MGR  = SRC_ROOT / "zombie/Lua/LuaManager.java"
-OUT_FILE = SRC_ROOT / "pz-lua-api-viewer/lua_api.json"
+
+# ---------------------------------------------------------------------------
+# Version detection helpers
+# ---------------------------------------------------------------------------
+
+def detect_pz_version(pz_root: pathlib.Path) -> str:
+    """
+    Try to detect the PZ build number from the install directory.
+    Checks (in order):
+      1. SVNRevision.txt  — contains a single integer like "964"
+      2. ProjectZomboid64.bat — parse first -Dgame.version line
+      3. Falls back to "unknown"
+    Returns a string like "B42_0.78.3.964" or just "964" depending on what's found.
+    """
+    # Option 1: SVNRevision.txt (most reliable — just a rev number)
+    svn = pz_root.parent / "SVNRevision.txt"
+    if svn.exists():
+        rev = svn.read_text(encoding="utf-8", errors="ignore").strip()
+        if rev.isdigit():
+            return f"r{rev}"
+
+    # Option 2: scan .bat launcher for version string
+    bat = pz_root.parent / "ProjectZomboid64.bat"
+    if bat.exists():
+        txt = bat.read_text(encoding="utf-8", errors="ignore")
+        m = re.search(r'-Dgame\.version=([^\s"]+)', txt)
+        if m:
+            return m.group(1).replace(".", "_")
+
+    return "unknown"
+
+_PROJ_ROOT = pathlib.Path("E:/SteamLibrary/steamapps/common/ProjectZomboid/projectzomboid")
+SRC_ROOT   = _PROJ_ROOT / "sources"   # decompiled Java sources live here
+LUA_MGR    = SRC_ROOT / "zombie/Lua/LuaManager.java"
+OUT_FILE   = _PROJ_ROOT / "pz-lua-api-viewer/lua_api.json"
 
 # ---------------------------------------------------------------------------
 # Step 1: Parse LuaManager.java — get setExposed FQNs and @LuaMethod globals
@@ -648,10 +680,25 @@ print(f"  Source-only entries: {len(source_index)}")
 # ---------------------------------------------------------------------------
 # Step 6: Save
 # ---------------------------------------------------------------------------
+# Build _class_by_simple_name: reverse map simple → [fqn, ...]
+class_by_simple_name = {}
+for fqn in all_classes:
+    simple = fqn.split('.')[-1]
+    class_by_simple_name.setdefault(simple, []).append(fqn)
+
+# Build _source_only_paths: source index entries whose simple name is NOT in the API
+source_only_paths = {
+    simple: path
+    for simple, path in source_index.items()
+    if simple not in class_by_simple_name
+}
+
 api = {
     "classes": all_classes,
     "global_functions": global_functions,
     "_source_index": source_index,
+    "_class_by_simple_name": class_by_simple_name,
+    "_source_only_paths": source_only_paths,
     "_extends_map": _extends_map,
     "_interface_extends": _interface_extends,
     "_interface_paths": _interface_paths,
@@ -683,4 +730,39 @@ print(f"  Parse errors:          {len(parse_errors)}")
 
 print(f"\nWriting {OUT_FILE}...")
 OUT_FILE.write_text(json.dumps(api, indent=2), encoding="utf-8")
+
+# ---------------------------------------------------------------------------
+# Versioned output — write versions/lua_api_<ver>.json + versions/versions.json
+# ---------------------------------------------------------------------------
+pz_version = detect_pz_version(_PROJ_ROOT)
+viewer_dir  = _PROJ_ROOT / "pz-lua-api-viewer"
+versions_dir = viewer_dir / "versions"
+versions_dir.mkdir(exist_ok=True)
+
+versioned_file = versions_dir / f"lua_api_{pz_version}.json"
+print(f"Writing versioned output {versioned_file.name} (version: {pz_version})...")
+versioned_file.write_text(json.dumps(api, indent=2), encoding="utf-8")
+
+# Update versions.json — merge with existing entries, newest first
+versions_json = versions_dir / "versions.json"
+existing: list = []
+if versions_json.exists():
+    try:
+        existing = json.loads(versions_json.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        existing = []
+
+# Build label: "Build r964" or "Build unknown"
+label = f"Build {pz_version}"
+new_entry = {
+    "id":    pz_version,
+    "label": label,
+    "file":  f"versions/lua_api_{pz_version}.json",
+}
+# Remove stale entry with same id (will re-insert at front)
+existing = [e for e in existing if e.get("id") != pz_version]
+manifest = [new_entry] + existing
+
+versions_json.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+print(f"Updated versions/versions.json ({len(manifest)} version(s)).")
 print("Done.")

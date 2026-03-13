@@ -47,3 +47,20 @@ let _restoringState = false;
 const tabs = [];       // [{fqn, ctab, scrollDetail, scrollSource, methodSearch, fieldSearch}]
 let activeTabIdx = -1;
 function activeTab() { return tabs[activeTabIdx] || null; }
+
+// Open a class in a new tab (FEAT-007: middle-click / Ctrl+click)
+function openNewTab(fqn) {
+  // Cap at 10 tabs — evict the oldest non-active tab
+  if (tabs.length >= 10) {
+    const dropIdx = tabs.findIndex((_, i) => i !== activeTabIdx);
+    if (dropIdx !== -1) {
+      tabs.splice(dropIdx, 1);
+      if (activeTabIdx > dropIdx) activeTabIdx--;
+    }
+  }
+
+  // Create a fresh tab entry for the new class
+  tabs.push({ fqn, ctab: 'detail', scrollDetail: 0, scrollSource: 0 });
+  activeTabIdx = tabs.length - 1;
+  activateTab(activeTabIdx);
+}

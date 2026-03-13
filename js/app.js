@@ -1,18 +1,62 @@
 'use strict';
 
-// ── Load API ──────────────────────────────────────────────────────────────
-fetch('./lua_api.json')
-  .then(r => { if (!r.ok) throw new Error(r.statusText); return r.json(); })
-  .then(data => {
-    API = data;
+// ── Load API (version-aware) ───────────────────────────────────────────────
+(async function loadApi() {
+  // Check for ?v= query param
+  const params   = new URLSearchParams(location.search);
+  const vParam   = params.get('v');
+
+  // Try to load versions manifest (gracefully absent)
+  let versionsManifest = null;
+  try {
+    const r = await fetch('./versions/versions.json');
+    if (r.ok) versionsManifest = await r.json();
+  } catch { /* no versions manifest — single-file mode */ }
+
+  // Determine which API file to fetch
+  let apiFile       = './lua_api.json';
+  let activeVersion = null;
+  if (versionsManifest && versionsManifest.length > 0) {
+    // Honour ?v= param; fall back to first (newest) entry
+    const match = vParam ? versionsManifest.find(v => v.id === vParam) : null;
+    const entry = match || versionsManifest[0];
+    apiFile       = './' + entry.file;
+    activeVersion = entry.id;
+  }
+
+  try {
+    const r = await fetch(apiFile);
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    API = await r.json();
     document.getElementById('loading').style.display = 'none';
     document.getElementById('placeholder').style.display = 'flex';
+    setupVersionDropdown(versionsManifest, activeVersion);
     init();
-  })
-  .catch(e => {
+  } catch (e) {
     document.getElementById('loading').innerHTML =
-      `<div style="color:#e06c75;text-align:center">Failed to load lua_api.json<br><small>${e.message}</small></div>`;
+      `<div style="color:#e06c75;text-align:center">Failed to load API data<br><small>${e.message}</small></div>`;
+  }
+})();
+
+// ── Version dropdown ───────────────────────────────────────────────────────
+function setupVersionDropdown(manifest, currentId) {
+  const sel = document.getElementById('version-select');
+  if (!manifest || manifest.length <= 1) {
+    sel.style.display = 'none';
+    return;
+  }
+  sel.innerHTML = manifest.map(v =>
+    `<option value="${esc(v.id)}"${v.id === currentId ? ' selected' : ''}>${esc(v.label)}</option>`
+  ).join('');
+  sel.style.display = '';
+  sel.addEventListener('change', () => {
+    const p = new URLSearchParams(location.search);
+    p.set('v', sel.value);
+    // Preserve existing hash (currently open class) across version switch
+    const hash = location.hash;
+    location.href = `${location.pathname}?${p.toString()}${hash}`;
   });
+}
 
 function init() {
   const m = API._meta;
@@ -21,20 +65,26 @@ function init() {
   document.getElementById('stat-globals').textContent = `${m.total_global_functions} globals`;
 
   // Build simple-name → [fqn, …] lookup for source class-ref linking
-  for (const fqn of Object.keys(API.classes)) {
-    const simple = fqn.split('.').pop();
-    (classBySimpleName[simple] = classBySimpleName[simple] || []).push(fqn);
-  }
-
-  // Merge source-only index: classes not in the API but with available source files
-  for (const [simple, path] of Object.entries(API._source_index || {})) {
-    if (!classBySimpleName[simple]) {
-      sourceOnlyPaths[simple] = path;
+  // Fast path: use precomputed maps from lua_api.json if present
+  if (API._class_by_simple_name) {
+    Object.assign(classBySimpleName, API._class_by_simple_name);
+    Object.assign(sourceOnlyPaths,   API._source_only_paths || {});
+  } else {
+    // Fallback: compute on the fly (backwards compatibility with older JSON)
+    for (const fqn of Object.keys(API.classes)) {
+      const simple = fqn.split('.').pop();
+      (classBySimpleName[simple] = classBySimpleName[simple] || []).push(fqn);
+    }
+    for (const [simple, path] of Object.entries(API._source_index || {})) {
+      if (!classBySimpleName[simple]) {
+        sourceOnlyPaths[simple] = path;
+      }
     }
   }
 
   buildClassList();
   setupEvents();
+  initSplitter('sidebar-splitter', 'sidebar',       'splitW-sidebar');
   initSplitter('classes-splitter', 'detail-panel', 'splitW-classes');
   initSplitter('globals-splitter', 'globals-left',  'splitW-globals');
   if (localStorage.getItem('splitLayout') === '1') applySplitLayout(true);
@@ -480,10 +530,126 @@ function setupEvents() {
     if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); navGo(+1); }
   });
 
+  // ── Hover preview card (FEAT-014) ──────────────────────────────────────
+  (function () {
+    const card  = document.getElementById('hover-preview');
+    let timer   = null;
+    let lastFqn = null;
+
+    function showCard(fqn, anchorEl) {
+      const cls = API && API.classes && API.classes[fqn];
+      if (!cls) return;
+      lastFqn = fqn;
+
+      // Build content
+      const badges = [
+        cls.set_exposed ? '<span class="hp-badge hp-badge-exposed">setExposed</span>' : '',
+        cls.lua_tagged  ? '<span class="hp-badge hp-badge-tagged">@UsedFromLua</span>'  : '',
+        cls.is_enum     ? '<span class="hp-badge hp-badge-enum">enum</span>'            : '',
+      ].filter(Boolean).join('');
+
+      const methodCount = cls.methods ? cls.methods.length : 0;
+      const fieldCount  = cls.fields  ? cls.fields.length  : 0;
+
+      // First 3 callable methods alphabetically (lua_tagged first, then others)
+      const sorted = (cls.methods || [])
+        .filter(m => m.lua_tagged || cls.set_exposed)
+        .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
+        .slice(0, 3);
+      const methodsHtml = sorted.length
+        ? `<div class="hp-methods">
+             <div class="hp-methods-label">Methods</div>
+             ${sorted.map(m => `<div class="hp-method">${esc(m.name)}(…)</div>`).join('')}
+             ${methodCount > 3 ? `<div style="font-size:10px;color:var(--text-dim)">…and ${methodCount - 3} more</div>` : ''}
+           </div>`
+        : '';
+
+      const parent = cls.extends ? cls.extends.split('.').pop() : null;
+      const extendsHtml = parent
+        ? `<div class="hp-stat">Extends <span>${esc(parent)}</span></div>`
+        : '';
+
+      card.innerHTML = `
+        <div class="hp-name">${esc(cls.simple_name || fqn.split('.').pop())}</div>
+        <div class="hp-fqn">${esc(fqn)}</div>
+        ${badges ? `<div class="hp-badges">${badges}</div>` : ''}
+        <div class="hp-stat">Methods: <span>${methodCount}</span> &nbsp; Fields: <span>${fieldCount}</span></div>
+        ${extendsHtml}
+        ${methodsHtml}
+        <div class="hp-hint">Click to open · Ctrl+click or middle-click for new tab</div>
+      `;
+
+      // Position near the anchor element, clamped to viewport
+      const rect = anchorEl.getBoundingClientRect();
+      const vw   = window.innerWidth;
+      const vh   = window.innerHeight;
+      // Preferred: just below the link
+      let top  = rect.bottom + 6;
+      let left = rect.left;
+
+      card.style.visibility = 'hidden';
+      card.style.display    = 'block';
+      const cw = card.offsetWidth;
+      const ch = card.offsetHeight;
+      card.style.display    = '';
+      card.style.visibility = '';
+
+      // Clamp right edge
+      if (left + cw > vw - 8) left = vw - cw - 8;
+      if (left < 8) left = 8;
+      // If not enough space below, flip above
+      if (top + ch > vh - 8) top = rect.top - ch - 6;
+      if (top < 8) top = 8;
+
+      card.style.left = `${left}px`;
+      card.style.top  = `${top}px`;
+      card.classList.add('visible');
+    }
+
+    function hideCard() {
+      clearTimeout(timer);
+      timer   = null;
+      lastFqn = null;
+      card.classList.remove('visible');
+    }
+
+    document.addEventListener('mouseover', e => {
+      const el = e.target.closest('[data-fqn]');
+      if (!el) return;
+      const fqn = el.dataset.fqn;
+      if (!fqn || fqn === lastFqn) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => showCard(fqn, el), 400);
+    });
+
+    document.addEventListener('mouseout', e => {
+      const el = e.target.closest('[data-fqn]');
+      if (!el) return;
+      // Only hide if we're actually leaving the element (not moving to a child)
+      if (!el.contains(e.relatedTarget)) {
+        clearTimeout(timer);
+        timer = null;
+        // Small grace period so the card doesn't flicker when moving to a child text node
+        if (card.classList.contains('visible')) {
+          timer = setTimeout(hideCard, 80);
+        }
+      }
+    });
+
+    // Clicking anything hides the card
+    document.addEventListener('click', hideCard);
+    // Scrolling hides the card
+    document.addEventListener('scroll', hideCard, true);
+  })();
+
   // Delegated click for source class refs and method links in source panels
   document.getElementById('content').addEventListener('click', e => {
     const a = e.target.closest('a.src-class-ref');
     if (a) {
+      // Middle-click or Ctrl+click → open in new tab
+      if (e.button === 1 || e.ctrlKey) {
+        if (a.dataset.fqn) { openNewTab(a.dataset.fqn); e.preventDefault(); return; }
+      }
       e.preventDefault();
       if (a.dataset.sourcePath) {
         showSourceByPath(a.dataset.sourcePath);
@@ -496,6 +662,10 @@ function setupEvents() {
     // panel, but scoped to avoid double-handling with the detail-panel listener.
     const ma = e.target.closest('a.inherit-method-link[data-fqn]');
     if (ma && !ma.closest('#detail-panel')) {
+      // Middle-click or Ctrl+click → open in new tab
+      if (e.button === 1 || e.ctrlKey) {
+        if (ma.dataset.fqn) { openNewTab(ma.dataset.fqn); e.preventDefault(); return; }
+      }
       e.preventDefault();
       selectClass(ma.dataset.fqn, null, ma.dataset.method);
     }
@@ -509,11 +679,23 @@ function setupEvents() {
 
     // Inheritance header — class links
     const inheritLink = e.target.closest('a.inherit-link[data-fqn]');
-    if (inheritLink) { e.preventDefault(); selectClass(inheritLink.dataset.fqn); return; }
+    if (inheritLink) {
+      // Middle-click or Ctrl+click → open in new tab
+      if (e.button === 1 || e.ctrlKey) {
+        if (inheritLink.dataset.fqn) { openNewTab(inheritLink.dataset.fqn); e.preventDefault(); return; }
+      }
+      e.preventDefault();
+      selectClass(inheritLink.dataset.fqn);
+      return;
+    }
 
     // Inherited method links — navigate to ancestor class and scroll to method in source
     const inheritMethod = e.target.closest('a.inherit-method-link[data-fqn]');
     if (inheritMethod) {
+      // Middle-click or Ctrl+click → open in new tab
+      if (e.button === 1 || e.ctrlKey) {
+        if (inheritMethod.dataset.fqn) { openNewTab(inheritMethod.dataset.fqn); e.preventDefault(); return; }
+      }
       e.preventDefault();
       const targetFqn = inheritMethod.dataset.fqn;
       const method    = inheritMethod.dataset.method;

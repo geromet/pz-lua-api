@@ -20,6 +20,7 @@
   <span class="hstat"><span class="hstat-dot" style="background:var(--col-exposed)"></span><span id="stat-exposed">…</span> setExposed</span>
   <span class="hstat"><span class="hstat-dot" style="background:var(--col-tagged)"></span><span id="stat-tagged">…</span> @UsedFromLua</span>
   <span class="hstat" id="stat-globals" style="color:var(--text-dim)"></span>
+  <select id="version-select" style="display:none" title="Switch API version"></select>
   <button id="btn-folder" title="Load source files from your local Project Zomboid installation (overrides pre-shipped sources)">📁 Local sources</button>
 </div>
 
@@ -55,6 +56,9 @@
     <div id="class-count"></div>
     <div id="class-list"></div>
   </div>
+
+  <!-- Sidebar ↔ Content splitter -->
+  <div class="splitter" id="sidebar-splitter"></div>
 
   <!-- Content -->
   <div id="content">
@@ -115,6 +119,9 @@
     </div>
   </div>
 </div>
+
+<!-- Hover preview card — populated dynamically by app.js -->
+<div id="hover-preview" aria-hidden="true"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/highlight.min.js"></script>
 <script src="js/state.js"></script>
