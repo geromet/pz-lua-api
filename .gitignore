@@ -34,3 +34,6 @@ vendor/
 coverage/
 .cache/
 tmp/
+
+# Windows reserved device name accidentally created as file
+nul
