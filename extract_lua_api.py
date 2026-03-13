@@ -124,8 +124,14 @@ for attrs, java_name in lua_method_blocks:
         continue
     name_match = re.search(r'name\s*=\s*"([^"]+)"', attrs)
     lua_name = name_match.group(1) if name_match else java_name
-    cat, _sub = _method_group(lua_name)
-    global_functions.append({"lua_name": lua_name, "java_method": java_name, "category": cat})
+    cat, sub = _method_group(lua_name)
+    global_functions.append({
+        "lua_name":    lua_name,
+        "java_method": java_name,
+        "category":    cat,   # legacy field kept for backwards compat
+        "domain":      cat,   # used by globals.js grouping hierarchy
+        "section":     sub,   # verb prefix (e.g. "get", "set", "send")
+    })
 print(f"  @LuaMethod global functions: {len(global_functions)}")
 
 # ---------------------------------------------------------------------------

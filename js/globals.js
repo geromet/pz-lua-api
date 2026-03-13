@@ -84,7 +84,7 @@ function updateGlobalsTable(filter) {
   let rows = '';
   for (const {g} of fns) {
     const domain  = g.domain  || 'Other';
-    const section = g.section || 'Other';
+    const section = g.section ? (g.section.charAt(0).toUpperCase() + g.section.slice(1) + '…') : 'Other';
     const group   = g.group   || 'Other';
     const domKey  = 'DOM:' + domain;
     const secKey  = 'SEC:' + domain + '/' + section;
