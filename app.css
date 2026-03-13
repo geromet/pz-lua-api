@@ -170,6 +170,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .badge-no{background:var(--bg3);color:var(--text-dim);border:1px solid var(--border)}
 .badge-enum{background:#1a1a3a;color:#8888ff;border:1px solid #8888ff}
 .source-path{font-size:11px;color:var(--text-dim);font-family:monospace}
+.source-path-link{cursor:pointer;transition:color .15s}
+.source-path-link:hover{color:var(--accent2)}
+.source-path-link::after{content:' ↗';font-size:9px;opacity:0;transition:opacity .15s}
+.source-path-link:hover::after{opacity:.6}
 .fqn-copyable{cursor:pointer;transition:color .15s}
 .fqn-copyable:hover{color:var(--accent2)}
 .fqn-copyable.fqn-copied{color:var(--green)}

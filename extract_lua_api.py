@@ -86,37 +86,73 @@ _CATEGORY_MAP = {
     # Query
     'get': 'Query', 'is': 'Query', 'has': 'Query', 'can': 'Query',
     'check': 'Query', 'find': 'Query', 'count': 'Query', 'list': 'Query',
+    'was': 'Query', 'instanceof': 'Query', 'istype': 'Query',
     # Mutation
     'set': 'Mutation', 'add': 'Mutation', 'remove': 'Mutation',
     'delete': 'Mutation', 'create': 'Mutation', 'update': 'Mutation',
     'clear': 'Mutation', 'reset': 'Mutation', 'clone': 'Mutation',
     'replace': 'Mutation', 'change': 'Mutation', 'insert': 'Mutation',
+    'take': 'Mutation', 'give': 'Mutation', 'transfer': 'Mutation',
+    'revert': 'Mutation', 'use': 'Mutation',
     # Network
     'send': 'Network', 'sync': 'Network', 'request': 'Network',
     'ban': 'Network', 'kick': 'Network', 'connect': 'Network',
     'disconnect': 'Network', 'broadcast': 'Network',
+    'server': 'Network', 'trading': 'Network', 'accept': 'Network',
+    'proceed': 'Network', 'network': 'Network', 'connection': 'Network',
+    'convert': 'Network',
     # Storage
     'load': 'Storage', 'save': 'Storage', 'reload': 'Storage',
     'cache': 'Storage', 'read': 'Storage', 'write': 'Storage',
+    'open': 'Storage', 'close': 'Storage', 'rename': 'Storage',
     # UI
     'show': 'UI', 'hide': 'UI', 'toggle': 'UI', 'screen': 'UI',
     'render': 'UI', 'draw': 'UI', 'display': 'UI',
+    'translate': 'UI', 'tab': 'UI', 'scoreboard': 'UI',
+    # World / ISO
+    'iso': 'World', 'zpop': 'World', 'zombie': 'World',
+    'teleport': 'World', 'force': 'World', 'timers': 'World',
+    'move': 'World', 'play': 'World', 'pause': 'World',
+    'setup': 'System', 'fast': 'System',
     # System
     'do': 'System', 'stop': 'System', 'start': 'System', 'end': 'System',
     'instance': 'System', 'process': 'System', 'execute': 'System',
     'run': 'System', 'init': 'System', 'debug': 'System', 'back': 'System',
     'activate': 'System', 'deactivate': 'System', 'enable': 'System',
     'disable': 'System', 'trigger': 'System', 'call': 'System',
-    'steam': 'System', 'breakpoint': 'System',
+    'steam': 'System', 'breakpoint': 'System', 'test': 'System',
+}
+
+# Additional mapping for PascalCase prefixes (upper-cased first letter)
+_PASCAL_CATEGORY_MAP = {
+    'Add':    'Mutation',
+    'Remove': 'Mutation',
+    'Send':   'Network',
+    'Sync':   'Network',
+    'Render': 'UI',
+    'Inv':    'Storage',  # InvMng* functions
+    'New':    'Storage',
+    'Zombr':  'World',    # ZombRand*
+    'Zombi':  'World',    # Zombified*
 }
 
 def _method_group(lua_name):
     """Return (category, subgroup) for a global function's display grouping.
     Category is a broad bucket; subgroup is the verb prefix of the method name."""
+    # Try lowercase prefix first (most functions)
     m = re.match(r'^([a-z]+)', lua_name)
-    prefix = m.group(1) if m else 'other'
-    category = _CATEGORY_MAP.get(prefix, 'Other')
-    return category, prefix
+    if m:
+        prefix = m.group(1)
+        category = _CATEGORY_MAP.get(prefix, 'Other')
+        return category, prefix
+    # PascalCase: try 3-5 char prefix
+    for length in (5, 4, 3):
+        prefix = lua_name[:length]
+        if prefix in _PASCAL_CATEGORY_MAP:
+            return _PASCAL_CATEGORY_MAP[prefix], prefix
+    # PascalCase fallback: use first word as section
+    pm = re.match(r'^([A-Z][a-z]+)', lua_name)
+    return 'Other', (pm.group(1) if pm else lua_name[:6])
 
 global_functions = []
 for attrs, java_name in lua_method_blocks:

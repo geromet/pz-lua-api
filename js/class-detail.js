@@ -14,7 +14,10 @@ function renderClassDetail(fqn) {
         <span class="badge ${cls.lua_tagged  ? 'badge-tagged'  : 'badge-no'}">${cls.lua_tagged  ? '@UsedFromLua' : 'not @UsedFromLua'}</span>
         ${cls.is_enum ? '<span class="badge badge-enum">enum</span>' : ''}
       </div>
-      <div class="source-path">${esc(cls.source_file)}</div>
+      ${cls.source_file
+        ? `<div class="source-path source-path-link" title="Click to view source">${esc(cls.source_file)}</div>`
+        : `<div class="source-path" style="color:var(--text-dim);font-style:italic">no source</div>`
+      }
     </div>
     ${renderInheritHeader(cls, fqn)}
     ${(cls.constructors || []).length ? `
@@ -44,6 +47,21 @@ function renderClassDetail(fqn) {
   switchCtab('detail');
   refreshMethods(cls, fqn);
   refreshFields(cls);
+
+  // Click source path → switch to Source tab
+  const srcPathEl = panel.querySelector('.source-path-link');
+  if (srcPathEl) {
+    srcPathEl.addEventListener('click', () => {
+      if (currentClass) {
+        if (splitLayout) {
+          showSource(API.classes[currentClass]);
+        } else {
+          switchCtab('source');
+          showSource(API.classes[currentClass]);
+        }
+      }
+    });
+  }
 
   // Copy FQN to clipboard on click
   const fqnEl = panel.querySelector('.fqn-copyable');
