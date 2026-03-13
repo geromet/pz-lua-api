@@ -32,7 +32,23 @@ function initGlobals() {
   inp.parentNode.replaceChild(fresh, inp);
   fresh.value = '';
   fresh.addEventListener('input', () => updateGlobalsTable(fresh.value));
+  // Escape from source view back to table (when globals panel is active)
+  fresh.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const wrap = document.getElementById('globals-source-wrap');
+      if (wrap.classList.contains('has-source')) { backToGlobalsTable(); fresh.focus(); }
+      else fresh.blur();
+    }
+  });
   fresh.focus();
+
+  // "View LuaManager.java" button — shows the raw source for the whole file
+  const luaMgrBtn = document.getElementById('btn-view-lua-manager');
+  if (luaMgrBtn) {
+    const newBtn = luaMgrBtn.cloneNode(true);
+    luaMgrBtn.parentNode.replaceChild(newBtn, luaMgrBtn);
+    newBtn.addEventListener('click', () => showGlobalSource('LuaManager'));
+  }
 }
 
 function updateGlobalsTable(filter) {
@@ -186,7 +202,8 @@ function updateGlobalsTable(filter) {
 async function showGlobalSource(javaMethod) {
   navPush({type: 'globalSource', javaMethod});
   const relPath = 'zombie/Lua/LuaManager.java';
-  document.getElementById('globals-src-title').textContent = javaMethod;
+  document.getElementById('globals-src-title').textContent =
+    javaMethod === 'LuaManager' ? 'LuaManager.java' : javaMethod;
   document.getElementById('globals-source-wrap').classList.add('has-source');
   document.getElementById('gsrc-toolbar').style.display = '';
 
@@ -202,9 +219,12 @@ async function showGlobalSource(javaMethod) {
   }
 
   renderFoldableSource(text, codeEl);
-  scrollToMethod(text, javaMethod,
-    document.getElementById('globals-src-pre'),
-    document.getElementById('globals-src-code'));
+  // 'LuaManager' is the sentinel for "show whole file, no method scroll"
+  if (javaMethod !== 'LuaManager') {
+    scrollToMethod(text, javaMethod,
+      document.getElementById('globals-src-pre'),
+      document.getElementById('globals-src-code'));
+  }
 }
 
 function backToGlobalsTable() {

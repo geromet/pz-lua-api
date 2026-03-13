@@ -8,7 +8,7 @@ function renderClassDetail(fqn) {
   panel.innerHTML = `
     <div class="class-header">
       <h2>${esc(simple)}</h2>
-      <div class="fqn">${esc(fqn)}</div>
+      <div class="fqn fqn-copyable" title="Click to copy FQN" data-fqn-copy="${esc(fqn)}">${esc(fqn)}</div>
       <div class="badges">
         <span class="badge ${cls.set_exposed ? 'badge-exposed' : 'badge-no'}">${cls.set_exposed ? 'setExposed' : 'not setExposed'}</span>
         <span class="badge ${cls.lua_tagged  ? 'badge-tagged'  : 'badge-no'}">${cls.lua_tagged  ? '@UsedFromLua' : 'not @UsedFromLua'}</span>
@@ -44,6 +44,17 @@ function renderClassDetail(fqn) {
   switchCtab('detail');
   refreshMethods(cls, fqn);
   refreshFields(cls);
+
+  // Copy FQN to clipboard on click
+  const fqnEl = panel.querySelector('.fqn-copyable');
+  if (fqnEl) {
+    fqnEl.addEventListener('click', () => {
+      navigator.clipboard.writeText(fqnEl.dataset.fqnCopy).then(() => {
+        fqnEl.classList.add('fqn-copied');
+        setTimeout(() => fqnEl.classList.remove('fqn-copied'), 1200);
+      }).catch(() => {});
+    });
+  }
 
   const mi = document.getElementById('method-search-inp');
   const miClear = document.getElementById('btn-method-search-clear');

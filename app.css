@@ -170,6 +170,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .badge-no{background:var(--bg3);color:var(--text-dim);border:1px solid var(--border)}
 .badge-enum{background:#1a1a3a;color:#8888ff;border:1px solid #8888ff}
 .source-path{font-size:11px;color:var(--text-dim);font-family:monospace}
+.fqn-copyable{cursor:pointer;transition:color .15s}
+.fqn-copyable:hover{color:var(--accent2)}
+.fqn-copyable.fqn-copied{color:var(--green)}
+.fqn-copyable::after{content:' 📋';font-size:10px;opacity:0;transition:opacity .15s}
+.fqn-copyable:hover::after{opacity:.5}
+.fqn-copyable.fqn-copied::after{content:' ✓';opacity:1;color:var(--green)}
 
 .section{margin-bottom:14px}
 .section-header{display:flex;align-items:center;gap:10px;margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--border)}
