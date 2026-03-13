@@ -40,3 +40,6 @@ nul
 
 # ── GSD baseline (auto-generated) ──
 .gsd/completed-units.json
+.bg-shell/
+.bg-shell/
+.gsd/test-reports/

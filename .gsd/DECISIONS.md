@@ -1,23 +1,75 @@
-# Decisions Register
+# Architectural Decisions
 
-<!-- Append-only. Never edit or remove existing rows.
-     To reverse a decision, add a new row that supersedes it.
-     Read this file at the start of any planning or research phase. -->
+Record of significant decisions made during development. Captures the "why" so we don't relitigate closed questions.
 
-| # | When | Scope | Decision | Choice | Rationale | Revisable? |
-|---|------|-------|----------|--------|-----------|------------|
-| 1 | 2026-03 | Navigation | History suppression during state restore | `_restoringState` flag in `state.js` | Single flag, no param threading, zero cognitive overhead for new nav actions | No |
-| 2 | 2026-03 | Data model | Inheritance gaps | `_extends_map` separate from `all_classes` | Keeps class list clean — only real API classes; gap-filling is a separate lookup | No |
-| 3 | 2026-03 | Data model | Interface extends | `_interface_extends` separate from `_extends_map` | 1:many vs 1:1 data shape; different traversal semantics | No |
-| 4 | 2026-03 | UI | Implements display | Grouped by class in chain, not flat | Flat list of 20+ items is unusable; grouping shows provenance | Low |
-| 5 | 2026-03 | Legal | Pre-shipped Java sources | Ship in `sources/` (~3889 files) | Indie Stone ToS 2.1 permits distributing base game files for non-commercial PZ promotion | No |
-| 6 | 2026-03 | Git | Branch discipline | Never push to `main` | `main` auto-deploys to GitHub Pages | No |
-| 7 | 2026-03-13 | GSD setup | GSD root | `.gsd/` at `projectzomboid/` (CWD), not inside `pz-lua-api-viewer/` | GSD resolves `.gsd/` relative to CWD; CWD is `projectzomboid/`; placing it here lets auto-mode work without `cd` | Low |
-| 8 | 2026-03-13 | GSD setup | Shared docs | `pz-lua-api-viewer/docs/` remains the shared doc system; GSD roadmap/slices/tasks live in `.gsd/milestones/` | Claude Code and GSD both need `docs/`; GSD planning artifacts are separate from shared operational docs | No |
-| 9 | 2026-03-13 | M001 structure | Task granularity | Each former TASK-NNN becomes one GSD task within a slice | Existing task files have enough detail; slice wraps related tasks into a demoable unit | Low |
-| 10 | 2026-03-13 | extract_lua_api.py | Source root path | Split SRC_ROOT into _PROJ_ROOT (projectzomboid/) and SRC_ROOT (_PROJ_ROOT/sources/) | Java sources live under sources/ subdir, not at projectzomboid/ root; hardcoded paths were broken | When source layout changes |
-| 11 | 2026-03-13 | lua_api.json / app.js | Build-time precomputation strategy | Inject _class_by_simple_name + _source_only_paths into JSON at extract time; app.js fast-path with fallback | Eliminates O(n) loop on every page load; backwards compatible with old JSON | No — fallback handles old JSON forever |
-| 12 | 2026-03-13 | hover preview (FEAT-014) | Preview card architecture | Single shared #hover-preview div; delegated mouseover on document; fixed positioning; IIFE in setupEvents() | No per-element listener overhead; IIFE keeps timer/lastFqn state local without polluting module scope; fixed positioning simplifies viewport-clamp math | Low |
-| 13 | 2026-03-13 | version selector (FEAT-005) | Version switching strategy | Full page reload (location.href = '?v=<id>#hash') | Avoids resetting ~15 global state variables; simplest correct approach; hash preserved so open class reopens | Low — could do in-page reinit if perf is a concern |
-| 14 | 2026-03-13 | version selector (FEAT-005) | Version ID format | SVNRevision.txt → "r964" prefix | Most reliable single-integer source in PZ install; prefix avoids bare-number confusion in URLs | When PZ changes version file layout |
-| 15 | 2026-03-13 | sidebar splitter (FEAT-004) | Reuse initSplitter() | No new logic; `initSplitter('sidebar-splitter','sidebar','splitW-sidebar')` | Existing function already handles drag, limits, and localStorage; only needed correct DOM structure | No |
+---
+
+## ADR-001: Navigation uses _restoringState flag, not noPush parameters
+
+**Date:** 2026-03
+**Status:** Accepted
+
+**Context:** Navigation-aware functions (`selectClass`, `switchTab`, `showGlobalSource`) needed to behave differently when called from `applyState` (no history write) vs. user interaction (write history). Originally implemented with `noPush` boolean params threaded through call chains.
+
+**Decision:** Single module-level `_restoringState` flag in `state.js`. `navPush` checks it and is a no-op when set. `applyState` sets/clears it in a `try/finally` block. All other call sites push unconditionally.
+
+**Consequences:** Adding new navigation actions requires zero thought about the flag — they just call `navPush`. `noPush` params no longer exist in any function signature.
+
+---
+
+## ADR-002: Inheritance gaps filled by _extends_map, not stub entries in all_classes
+
+**Date:** 2026-03
+**Status:** Accepted
+
+**Context:** Some classes in the inheritance chain (e.g. `IsoLivingCharacter`) are neither setExposed nor @UsedFromLua, so they have no entry in `all_classes`. This breaks chain rendering.
+
+**Decision:** Separate `_extends_map` (non-API FQN → parent FQN) built by BFS in step 4.6. Frontend uses `API._extends_map?.[cur]` as fallback when walking chains. Keeps `all_classes` clean — only real API classes.
+
+**Rejected alternative:** Add stub entries to `all_classes` with a `stub: true` flag. Would pollute the class list and require filtering everywhere.
+
+---
+
+## ADR-003: Interface extends tracked separately from class extends
+
+**Date:** 2026-03
+**Status:** Accepted
+
+**Context:** Java interfaces can extend multiple interfaces. JavaDocs lists all transitively implemented interfaces; we initially only showed direct `implements` clauses.
+
+**Decision:** `_interface_extends` map (interface FQN → [parent interface FQNs]) built by BFS in step 4.7, seeded from all interfaces appearing in class `implements` lists. Frontend walks this to build grouped implements display.
+
+**Why separate from _extends_map:** `_extends_map` is 1:1 (single parent per class). Interface extends is 1:many. Different data shape, different traversal semantics.
+
+---
+
+## ADR-004: Implements displayed grouped by inheritance chain, not flat
+
+**Date:** 2026-03
+**Status:** Accepted
+
+**Context:** JavaDocs lists all implemented interfaces as one long flat list. For classes like `IsoGameCharacter` this is 20+ items with no indication of where each came from.
+
+**Decision:** Group by class in the chain ("direct", "via IsoMovingObject", "via IsoObject"). Within each group, show sub-rows for interfaces that came through an interface's own extends chain ("via ILuaGameCharacter: ILuaGameCharacterAttachedItems, ..."). Deduplicate across all groups.
+
+---
+
+## ADR-005: Pre-shipped sources in sources/ are legal per ToS 2.1
+
+**Date:** 2026-03
+**Status:** Accepted
+
+**Context:** GitHub Pages needs source files available without a local PZ install.
+
+**Decision:** Ship ~3889 `.java` source files in `sources/`. The Indie Stone ToS section 2.1 explicitly permits distributing base game files for non-commercial purposes that promote PZ.
+
+---
+
+## ADR-006: No direct pushes to main branch
+
+**Date:** 2026-03
+**Status:** Accepted
+
+**Context:** `main` is the GitHub Pages deployment branch. Pushing triggers a rebuild and immediately affects the live site.
+
+**Decision:** All development happens on feature branches (currently `liability-machine`). Claude must never push directly to `main`.

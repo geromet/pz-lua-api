@@ -6,16 +6,16 @@
   --cache-type-v q4_0 ^
   --no-mmap ^
   --threads 8 ^
-  --batch-size 256 ^
+  --batch-size 512 ^
   --n-gpu-layers 99 ^
   --flash-attn on ^
   --jinja ^
   --chat-template-kwargs "{\"enable_thinking\":true}" ^
-  --temp 0.6 ^
+  --temp 0.7 ^
   --top-k 20 ^
   --top-p 0.95 ^
   --min-p 0 ^
   --repeat-penalty 1.05 ^
-  --repeat-last-n 256 ^
+  --repeat-last-n 512 ^
   --port 1234 ^
   --host 0.0.0.0
