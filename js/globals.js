@@ -67,7 +67,12 @@ function updateGlobalsTable(filter) {
 
   const fns = API.global_functions
     .map((g, i) => ({g, i}))
-    .filter(({g}) => !s || g.lua_name.toLowerCase().includes(s) || g.java_method.toLowerCase().includes(s))
+    .filter(({g}) => !s
+      || g.lua_name.toLowerCase().includes(s)
+      || g.java_method.toLowerCase().includes(s)
+      || (g.return_type || '').toLowerCase().includes(s)
+      || (g.params || []).some(p => p.type.toLowerCase().includes(s) || p.name.toLowerCase().includes(s))
+    )
     .sort((a, b) => {
       const da = a.g.domain  || 'Other', db = b.g.domain  || 'Other';
       const sa = da + '/' + (a.g.section || 'Other'), sb = db + '/' + (b.g.section || 'Other');
@@ -91,7 +96,7 @@ function updateGlobalsTable(filter) {
     const grpKey  = 'GRP:' + group;
     const domFolded = foldedGlobalGroups.has(domKey);
     const secFolded = foldedGlobalGroups.has(secKey);
-    const grpFolded = foldedGlobalGroups.has(grpKey);
+    const grpFolded = group !== 'Other' && foldedGlobalGroups.has(grpKey);
 
     if (domain !== lastDomain) {
       rows += `<tr class="globals-dom-header" data-domkey="${esc(domKey)}">
@@ -106,13 +111,17 @@ function updateGlobalsTable(filter) {
       lastSection = section; lastGroup = null;
     }
     if (group !== lastGroup) {
-      const grpHidden = domFolded || secFolded;
-      rows += `<tr class="globals-grp-header" data-domkey="${esc(domKey)}" data-seckey="${esc(secKey)}" data-grpkey="${esc(grpKey)}"${grpHidden ? ' style="display:none"' : ''}>
-        <td colspan="3" style="padding-left:20px"><span class="ggh-arrow">${grpFolded ? '▶' : '▼'}</span>
-        <span class="ggh-name" style="font-weight:normal;color:var(--accent)">${esc(group)}</span></td></tr>`;
       lastGroup = group;
+      // Suppress the group header when it's the generic 'Other' fallback
+      if (group !== 'Other') {
+        const grpHidden = domFolded || secFolded;
+        rows += `<tr class="globals-grp-header" data-domkey="${esc(domKey)}" data-seckey="${esc(secKey)}" data-grpkey="${esc(grpKey)}"${grpHidden ? ' style="display:none"' : ''}>
+          <td colspan="3" style="padding-left:20px"><span class="ggh-arrow">${grpFolded ? '▶' : '▼'}</span>
+          <span class="ggh-name" style="font-weight:normal;color:var(--accent)">${esc(group)}</span></td></tr>`;
+      }
     }
-    const fnHidden = domFolded || secFolded || grpFolded;
+    // When group is 'Other' there is no rendered group header, so grpFolded is irrelevant
+    const fnHidden = domFolded || secFolded || (group !== 'Other' && grpFolded);
     const alias = g.java_method !== g.lua_name
       ? `<span style="color:var(--text-dim);font-size:11px;margin-left:8px">← ${esc(g.java_method)}</span>`
       : '';
