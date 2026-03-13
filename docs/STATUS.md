@@ -1,6 +1,6 @@
 # Project Status
 
-**Last updated:** 2026-03-13 (session 2)
+**Last updated:** 2026-03-13 (session 3)
 
 This is the live tracker. Update it when:
 - A bug is filed, fixed, or closed → update Open Bugs
@@ -25,15 +25,27 @@ This is the live tracker. Update it when:
 | ~~TASK-015~~ | ~~Archived~~ | ~~Done~~ | ~~Wildcard import fallback for class-ref linking (FEAT-009 Problem B)~~ |
 | TASK-016 | [TASK-016](Tasks/TASK-016-javadoc-extraction.md) | **Blocked** | Javadoc extraction — decompiled sources have 0 Javadoc blocks |
 | ~~TASK-017~~ | ~~Archived~~ | ~~Done~~ | ~~Build-time precomputation for faster startup (FEAT-008)~~ |
-| TASK-018 | [TASK-018](Tasks/TASK-018-version-selector.md) | **In Progress** | Version selector + multi-version API storage (FEAT-005) — extractor + frontend done; pending commit |
+| ~~TASK-018~~ | ~~Archived~~ | ~~Done~~ | ~~Version selector + multi-version API storage (FEAT-005)~~ |
 
 ---
 
-## Planned Features — Blocked (waiting on other tasks)
+## Planned Features — Shipped
+
+| ID | Shipped | Summary |
+|----|---------|---------|
+| ~~FEAT-004~~ | ~~2026-03-13~~ | ~~Draggable sidebar resize splitter~~ |
+| ~~FEAT-005~~ | ~~2026-03-13~~ | ~~Version selector + multi-version API~~ |
+| ~~FEAT-006~~ | ~~2026-03-12~~ | ~~Tab bar system~~ |
+| ~~FEAT-007~~ | ~~2026-03-13~~ | ~~Middle-click to open in new tab~~ |
+| ~~FEAT-008~~ | ~~2026-03-13~~ | ~~Build-time precomputation~~ |
+| ~~FEAT-011~~ | ~~2026-03-12~~ | ~~Globals sticky headers~~ |
+| ~~FEAT-012~~ | ~~2026-03-12~~ | ~~Globals fold memory~~ |
+| ~~FEAT-013~~ | ~~2026-03-12~~ | ~~Search highlight + clear~~ |
+| ~~FEAT-014~~ | ~~2026-03-13~~ | ~~Hover preview card~~ |
+
+## Planned Features — Remaining
 
 | ID | File | Blocked by | Summary |
 |----|------|------------|---------|
-| FEAT-004 | [FEAT-004](Planned_Features/FEAT-004-resizable-panels.md) | *(unblocked)* | Draggable resize handles |
-| FEAT-007 | [FEAT-007](Planned_Features/FEAT-007-middle-mouse-new-tab.md) | TASK-012 | Middle-click to open in new tab (needs tab bar first) |
-| FEAT-014 | [FEAT-014](Planned_Features/FEAT-014-hover-preview.md) | TASK-012 | Hover preview window (interaction model changes with tabs) |
-
+| FEAT-009 | [FEAT-009](Planned_Features/FEAT-009-deep-java-analysis.md) | — | Problem C: method-level call linking in source |
+| FEAT-010 | [FEAT-010](Planned_Features/FEAT-010-comments-descriptions.md) | TASK-016 (blocked) | Javadoc/LuaDoc display in detail panel |

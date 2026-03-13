@@ -1,3 +1,5 @@
+> **COMPLETED 2026-03-13** — Middle-click / Ctrl+click opens class in new tab from sidebar, inherit links, source refs, inherited method links. `openNewTab()` in state.js. Shipped in bf40c8f.
+
 # FEAT-007: Middle-click to open class in new tab
 
 **Status:** Planned

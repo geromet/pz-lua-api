@@ -1,3 +1,5 @@
+> **COMPLETED 2026-03-13** — Extractor detects build via SVNRevision.txt (r964); writes versions/lua_api_r964.json + versions/versions.json. Frontend: async version-aware loader, #version-select dropdown (hidden when ≤1 version), ?v= URL param preserved across navigation. Shipped in bf40c8f.
+
 # TASK-018: Version selector and multi-version API storage
 
 **Status:** Ready

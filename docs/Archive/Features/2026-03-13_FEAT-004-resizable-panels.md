@@ -1,3 +1,5 @@
+> **COMPLETED 2026-03-13** — Draggable sidebar↔content splitter added using existing `initSplitter()` infrastructure; width persists in localStorage. Shipped in bf40c8f.
+
 # FEAT-004: Resizable panels (drag to resize)
 
 **Status:** Planned

@@ -1,3 +1,5 @@
+> **COMPLETED 2026-03-13** — 400ms hover preview card on any `[data-fqn]` element; shows name, FQN, badges, method count, top-3 callable methods; viewport-clamped; dismisses on click/scroll. Shipped in bf40c8f.
+
 # FEAT-014: Hover preview window for class/method links
 
 **Status:** Planned
