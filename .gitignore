@@ -37,3 +37,6 @@ tmp/
 
 # Windows reserved device name accidentally created as file
 nul
+
+# ── GSD baseline (auto-generated) ──
+.gsd/completed-units.json
