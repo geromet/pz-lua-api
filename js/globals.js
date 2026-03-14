@@ -220,11 +220,17 @@ async function showGlobalSource(javaMethod) {
   codeEl.textContent = 'Loading…';
 
   let text;
-  try { text = await fetchSource(relPath); }
-  catch (e) {
-    codeEl.textContent = `// Source not available.\n// Error: ${e.message}`;
-    hljs.highlightElement(codeEl);
-    return;
+  // Use cached source if available (from hover prefetch)
+  if (sourceCache[relPath]) {
+    text = sourceCache[relPath];
+  } else {
+    try {
+      text = await fetchSource(relPath);
+    } catch (e) {
+      codeEl.textContent = `// Source not available.\n// Error: ${e.message}`;
+      hljs.highlightElement(codeEl);
+      return;
+    }
   }
 
   renderFoldableSource(text, codeEl);

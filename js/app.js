@@ -661,6 +661,35 @@ function setupEvents() {
     document.addEventListener('scroll', hideCard, true);
   })();
 
+  // ── Hover prefetch (TASK-026) ─────────────────────────────────────
+  let prefetchTimer = null;
+
+  // Install hover handlers on all class links — start fetching source files
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[data-fqn]');
+    if (!el || !el.dataset.fqn) return;
+
+    const fqn = el.dataset.fqn;
+    clearTimeout(prefetchTimer);
+    prefetchTimer = setTimeout(() => {
+      if (API && API.classes[fqn] && API.classes[fqn].source_file) {
+        fetchSource(API.classes[fqn].source_file).then(text => {
+          sourceCache[API.classes[fqn].source_file] = text;
+        }).catch(() => {
+          // Silently fail — will try pre-shipped or local sources later
+        });
+      }
+    }, 200);
+  });
+
+  // Cancel prefetch on mouse leave
+  document.addEventListener('mouseout', e => {
+    clearTimeout(prefetchTimer);
+    prefetchTimer = null;
+  });
+
+  // ── Hover prefetch (TASK-026) ─────────────────────────────────────
+
   // Delegated click for source class refs and method links in source panels
   document.getElementById('content').addEventListener('click', e => {
     const a = e.target.closest('a.src-class-ref');

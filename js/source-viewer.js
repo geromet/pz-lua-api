@@ -333,11 +333,15 @@ async function showSource(cls, jumpToMethod) {
   loadingEl.style.display = 'block';
 
   let text;
-  try {
-    text = await fetchSource(cls.source_file);
-  } catch (e) {
-    loadingEl.style.display = 'none';
-    codeEl.textContent = `// Source not available.\n// Run prepare_sources.py, or click "📁 Local sources"\n// and pick your projectzomboid folder.\n\n// Error: ${e.message}`;
+  // Use cached source if available (from hover prefetch)
+  if (sourceCache[cls.source_file]) {
+    text = sourceCache[cls.source_file];
+  } else {
+    try {
+      text = await fetchSource(cls.source_file);
+    } catch (e) {
+      loadingEl.style.display = 'none';
+      codeEl.textContent = `// Source not available.\n// Run prepare_sources.py, or click "📁 Local sources"\n// and pick your projectzomboid folder.\n\n// Error: ${e.message}`;
     hljs.highlightElement(codeEl);
     return;
   }
