@@ -58,7 +58,7 @@ This milestone is complete only when all are true:
 - [x] **S03:** version dropdown appears in toolbar; switching versions reloads API data; URL ?v= param works
 - [ ] **S04:** methods/fields with Javadoc show collapsible doc toggles (blocked — waiting on original PZ sources)
 - [x] **S05:** sidebar splitter with drag-to-resize and localStorage persistence
-- [x] **S06:** instant search + progressive rendering
+- [x] **S06:** instant search + progressive rendering — pre-computed index cuts search to <3ms; progressive render keeps first frame at 50 DOM nodes
 - [ ] **S07:** UX polish — hover prefetch, declutter, layout stability, breadcrumbs
 - [ ] **S08:** full URL state, recently viewed
 - [ ] **S09:** JSON split, critical CSS, service worker

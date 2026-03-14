@@ -9,7 +9,7 @@
 - 🔄 **M001:** Feature Completion
 
 ## Recent Decisions
-- None recorded
+- **S06 complete:** Pre-computed search index cuts keystroke latency to <3ms; progressive rendering keeps first frame at 50 DOM nodes (was deferring full virtual scroll — perceived lag already solved)
 
 ## Blockers
 - S04 (Javadoc): Decompiled CFR sources contain zero `/**` blocks. Extraction requires original PZ Java sources with Javadoc intact.
