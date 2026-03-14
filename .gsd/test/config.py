@@ -79,6 +79,10 @@ def init_browser():
     browser = sync_playwright().start()
     viewport_size = {"width": 1920, "height": 1080}
     context = browser.chromium.launch(headless=True, viewport=viewport_size, user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+    # Clean up browser cache to avoid stale data between test runs
+    cache_dir = context._browser_process_path().parent / "User Data" / "Chromium" / "Cache"
+    if cache_dir.exists():
+        cache_dir.rmdir()
     page = context.new_page()
     page.goto(SERVER_URL + "/")
     return page

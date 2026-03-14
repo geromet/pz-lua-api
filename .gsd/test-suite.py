@@ -103,6 +103,10 @@ class PZViewerTests:
         from playwright.sync_api import sync_playwright
         self.pw = sync_playwright().start()
         self.browser = self.pw.chromium.launch(headless=True)
+        # Clean up browser cache to avoid stale data between test runs
+        cache_dir = self.browser._browser_process_path().parent / "User Data" / "Chromium" / "Cache"
+        if cache_dir.exists():
+            cache_dir.rmdir()
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 800})
         self.page = ctx.new_page()
         # Auto-dismiss file chooser dialogs to prevent blocking
@@ -583,7 +587,7 @@ class PZViewerTests:
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     # Kill anything on port 8000
-    kill_port(PORT)
+    subprocess.run('kill_py.bat', shell=True)
     time.sleep(0.5)
 
     # Start server
@@ -598,7 +602,10 @@ if __name__ == "__main__":
             success = suite.run()
         finally:
             suite.teardown()
-    finally:
+            if not success:
+                # Kill Python processes when tests fail
+                print("[INFO] Tests failed — killing Python processes...")
+                subprocess.run("kill_py.bat", shell=True)
         server_proc.terminate()
         server_proc.wait(timeout=5)
 

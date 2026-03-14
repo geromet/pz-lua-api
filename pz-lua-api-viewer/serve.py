@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Serve the PZ Lua API Viewer locally on http://localhost:8000
 
-Graceful shutdown: sends SIGTERM to child process on Ctrl+C.
+Usage:
+    python serve.py            # Normal mode with browser open
+    python serve.py --quiet    # Quiet mode for automated testing (no browser)
+
+Graceful shutdown: Ctrl+C sends SIGTERM to child process.
 """
 import http.server
 import socketserver
@@ -28,31 +32,19 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 def main():
     """Main entry point with graceful shutdown."""
-    # Use a flag for graceful shutdown
-    shutdown_flag = False
+    # Set up graceful shutdown handler
+    httpd = socketserver.TCPServer(("127.0.0.1", PORT), QuietHandler)
 
     def shutdown(signum, frame):
         print("\nShutting down...")
-        nonlocal shutdown_flag
-        shutdown_flag = True
+        httpd.shutdown()
 
     # Register handlers for SIGINT (Ctrl+C) and SIGTERM
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, shutdown)
 
-    # Start the server — it will check shutdown_flag before each request
-    httpd = socketserver.TCPServer(("127.0.0.1", PORT), QuietHandler)
-
-    while not shutdown_flag:
-        try:
-            # Handle one request at a time, checking for shutdown between requests
-            httpd.handle_request()
-        except Exception as e:
-            print(f"Server error: {e}")
-            if shutdown_flag:
-                break
-
-    print("Server stopped.")
+    # Start the server — it will handle requests until shutdown signal
+    httpd.serve_forever()
 
 
 if __name__ == "__main__":
