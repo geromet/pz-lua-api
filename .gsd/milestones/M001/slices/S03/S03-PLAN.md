@@ -1,60 +1,73 @@
 # S03: Version Selector
 
-**Goal:** Ship TASK-018 / FEAT-005 — a version dropdown in the toolbar that lets users switch between pre-extracted PZ API versions.
-**Demo:** A version dropdown appears in the toolbar. Selecting a different version reloads the API data and re-initialises the viewer. `?v=B42#ClassName` URL form loads the correct version and class.
+**Goal:** Close S03 by adding automated verification, observability, and a real slice summary for the already-implemented version selector feature (TASK-018 / FEAT-005). T01 (extractor versioned output) and T02 (frontend dropdown) are complete — this plan addresses the remaining gaps.
+**Demo:** `pytest .gsd/test/s03_version_selector.py -v` passes all tests; `#version-select` exposes `data-version-active` for runtime inspection; doctor-created placeholder summary replaced with real compressed summary.
 
 ## Must-Haves
 
-- Version dropdown in toolbar; single-version deploy shows only one entry (no visible change from current)
-- `versions/versions.json` manifest drives the dropdown
-- Selecting a version fetches the versioned JSON and reinitialises the viewer
-- `?v=<build>#<class>` URL works: correct version selected, correct class opened
-- Extractor writes `lua_api_<build>.json` when version detected; updates `versions.json`
-- Existing single-JSON behaviour unchanged when `versions/versions.json` absent
+- `data-version-active` attribute on `#version-select` reflecting the currently loaded version (or absent when single-file mode)
+- Playwright test covering: dropdown hidden with single version, dropdown visible with ≥2 manifest entries, `?v=<id>` param selects correct version, graceful fallback when versions.json absent
+- At least one failure-path test: versions.json 404 → app still boots, dropdown hidden
+- Doctor-created placeholder S03-SUMMARY.md replaced with real summary
 
 ## Proof Level
 
-- This slice proves: integration — version switch fetches new data and re-renders correctly in the live browser
-- Real runtime required: yes (fetch must actually load a versioned JSON)
-- Human/UAT required: yes (screenshot to confirm dropdown and version switch)
+- This slice proves: integration — version switch fetches new data and renders correctly in the live browser
+- Real runtime required: yes (Playwright against local server)
+- Human/UAT required: no (automated tests sufficient)
 
 ## Verification
 
-- `python -c "import json; v=json.load(open('pz-lua-api-viewer/versions/versions.json')); print(v)"` shows at least one entry
-- Browser screenshot: toolbar shows version dropdown
-- Browser screenshot: after selecting a version, class list still loads
-- URL `http://localhost:8765?v=<build>#IsoPlayer` opens the correct class
+- `pytest .gsd/test/s03_version_selector.py -v` — all tests pass
+- Failure-path test: versions.json 404 route intercept → app loads, dropdown hidden, no JS errors
+- `grep -q 'versionActive' js/app.js` — diagnostic attribute wired
+
+## Observability / Diagnostics
+
+- Runtime signals: `#version-select[data-version-active]` reflects the active version ID (or absent when no manifest)
+- Inspection surfaces: `document.querySelector('#version-select').dataset.versionActive` in browser console; Playwright test assertions
+- Failure visibility: When versions.json fetch fails, dropdown remains hidden (`display:none`), app falls through to monolithic or split-index load — visible in network tab and absence of `data-version-active`
+- Redaction constraints: none
+
+## Integration Closure
+
+- Upstream surfaces consumed: `versions/versions.json` manifest, `js/app.js` version-aware loader (already wired by prior T01/T02)
+- New wiring introduced in this slice: `data-version-active` attribute on `#version-select`, Playwright test file
+- What remains before the milestone is truly usable end-to-end: S05, S06 and any remaining unblocked slices
 
 ## Tasks
 
 - [x] **T01: Extractor versioned output** `est:1h`
-  - Why: Implements the server-side half of FEAT-005 / TASK-018 Step 1
-  - Files: `pz-lua-api-viewer/extract_lua_api.py`
-  - Do: Read `pz-lua-api-viewer/docs/Tasks/TASK-018-version-selector.md` Step 1. Detect PZ build number (try `version.txt`, `.properties` files, EXE metadata, fall back to `"unknown"`). Write `lua_api_<build>.json` to `pz-lua-api-viewer/versions/`. Write/update `pz-lua-api-viewer/versions/versions.json` with `[{"id": "<build>", "label": "Build <build>", "file": "versions/lua_api_<build>.json"}]`. Keep writing `lua_api.json` at root for backwards compatibility.
-  - Verify: Run extractor; confirm `versions/versions.json` and `versions/lua_api_*.json` exist
-  - Done when: Both files exist; extractor exits cleanly; existing `lua_api.json` still present
+  - Why: Implements the server-side half of FEAT-005 / TASK-018
+  - Files: `extract_lua_api.py`
+  - Do: Already complete — see T01-SUMMARY.md
+  - Verify: `test -f versions/versions.json && test -f versions/lua_api_r964.json`
+  - Done when: Both files exist (verified)
 
 - [x] **T02: Frontend version dropdown and switching** `est:2h`
-  - Why: Implements the UI half of FEAT-005 / TASK-018 Steps 2–4
-  - Files: `pz-lua-api-viewer/index.html`, `pz-lua-api-viewer/js/app.js`, `pz-lua-api-viewer/js/state.js`, `pz-lua-api-viewer/app.css`
-  - Do: Read TASK-018 Steps 2–4. Add `<select id="version-select">` to toolbar. On init, try fetching `versions/versions.json`; if present, populate dropdown; if absent, hide dropdown. Selecting a version fetches the versioned JSON, replaces `window.API`, and calls `reinit()` (or full `init()` equivalent). Handle `?v=<build>` query param on load: select the matching version. Handle `#ClassName` after version switch. Store selected version in `localStorage`.
-  - Verify: Browser screenshot showing dropdown; select different entry → class list reloads; URL `?v=<build>#IsoPlayer` works
-  - Done when: All acceptance criteria in TASK-018 pass; no console errors
+  - Why: Implements the UI half of FEAT-005 / TASK-018
+  - Files: `js/app.js`, `index.html`, `app.css`
+  - Do: Already complete — see T02-SUMMARY.md
+  - Verify: `grep -q 'setupVersionDropdown' js/app.js`
+  - Done when: Version-aware loader and dropdown exist in app.js (verified)
 
-- [ ] **T03: Update docs and commit S03** `est:10m`
-  - Why: Keep STATUS.md accurate; archive TASK-018; lock in S03
-  - Files: `pz-lua-api-viewer/docs/STATUS.md`, `pz-lua-api-viewer/docs/Tasks/TASK-018-version-selector.md`
-  - Do: Prepend completion blockquote to TASK-018; run `python docs/archive.py docs/Tasks/TASK-018-version-selector.md`. Update STATUS.md. Commit and push.
-  - Verify: `git status` clean; STATUS.md accurate
-  - Done when: pushed to `liability-machine`
+- [ ] **T03: Add diagnostic data attribute and Playwright tests for version selector** `est:45m`
+  - Why: S03 implementation is done but has no automated tests and no diagnostic surface for future agents. Pre-flight requires observability and failure-path verification.
+  - Files: `js/app.js`, `.gsd/test/s03_version_selector.py`
+  - Do: (1) In `setupVersionDropdown()`, set `sel.dataset.versionActive = currentId` when manifest has entries, remove attribute when hidden. (2) Write `.gsd/test/s03_version_selector.py` with pytest + Playwright: test dropdown hidden with single version, dropdown visible when manifest has ≥2 entries (use route intercept to inject fake manifest), `?v=` param selects correct version, versions.json 404 → graceful fallback. Follow patterns from `.gsd/test/s09_load_perf.py`.
+  - Verify: `pytest .gsd/test/s03_version_selector.py -v`
+  - Done when: All 4+ tests pass; `grep -q 'versionActive' js/app.js` succeeds
+
+- [ ] **T04: Write real S03 summary and commit** `est:15m`
+  - Why: Doctor-created placeholder summary needs replacement; slice work needs to be committed and pushed.
+  - Files: `.gsd/milestones/M001/slices/S03/S03-SUMMARY.md`, `.gsd/milestones/M001/slices/S03/S03-UAT.md`
+  - Do: (1) Replace S03-SUMMARY.md with real compressed summary covering all T01–T03 work. (2) Replace S03-UAT.md with real smoke-test checklist. (3) Commit and push to liability-machine.
+  - Verify: `! grep -q 'placeholder' .gsd/milestones/M001/slices/S03/S03-SUMMARY.md`
+  - Done when: Summary is real (not placeholder); changes pushed to liability-machine
 
 ## Files Likely Touched
 
-- `pz-lua-api-viewer/extract_lua_api.py`
-- `pz-lua-api-viewer/js/app.js`
-- `pz-lua-api-viewer/js/state.js`
-- `pz-lua-api-viewer/index.html`
-- `pz-lua-api-viewer/app.css`
-- `pz-lua-api-viewer/versions/versions.json` (new)
-- `pz-lua-api-viewer/versions/lua_api_*.json` (new)
-- `pz-lua-api-viewer/lua_api.json` (regenerated)
+- `js/app.js`
+- `.gsd/test/s03_version_selector.py`
+- `.gsd/milestones/M001/slices/S03/S03-SUMMARY.md`
+- `.gsd/milestones/M001/slices/S03/S03-UAT.md`
