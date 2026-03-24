@@ -52,7 +52,7 @@ PY`
   - Do: Refactor the existing hash-only navigation flow in `js/app.js` into explicit state serialize/parse/apply helpers that preserve `?v=` while encoding filter/search/top-level tab/content tab/class selection in the URL; update URL state whenever those controls change without full reload; restore state on initial load in an order that respects API load, existing tabs, globals mode, and source/detail activation; and expose DOM-visible nav-state diagnostics so invalid or partial URL input is inspectable in tests.
   - Verify: `python -m pytest .gsd/test/s08_navigation_state.py -k "restore or diagnostics or failure"`
   - Done when: Opening a crafted URL restores the expected state in a fresh page, invalid state produces an inspectable fallback/error marker instead of a silent mismatch, and the new browser checks run from the named S08 test module.
-- [ ] **T02: Add recently viewed classes UI and persistence** `est:1.5h`
+- [x] **T02: Add recently viewed classes UI and persistence** `est:1.5h`
   - Why: Recent classes are the second user-facing outcome of the slice, and they should reuse the restored navigation model rather than introducing a parallel path.
   - Files: `index.html`, `app.css`, `js/app.js`, `.gsd/test/s08_navigation_state.py`
   - Do: Add a compact recent-classes control near the existing search/navigation chrome, back it with a localStorage list that is deduplicated and capped, update it from real class-selection events only, reuse existing `selectClass`/tab activation behavior when a recent item is chosen, and expose inspectable DOM state for item count and empty/error/fallback cases so browser checks can assert the control without scraping visual styling.

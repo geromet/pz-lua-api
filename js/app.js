@@ -66,6 +66,12 @@ const FILTER_LABELS = {
 };
 
 const NAV_QUERY_KEYS = ['tab', 'class', 'search', 'filter', 'ctab'];
+const RECENT_CLASSES_STORAGE_KEY = 'pzRecentClasses';
+const RECENT_CLASSES_LIMIT = 8;
+let recentClasses = [];
+let pendingRecentRender = false;
+let recentOpen = false;
+let pendingRecentMetadata = { source: 'boot', pruned: 0, lastAction: 'boot' };
 let pendingUrlStateSync = false;
 let initialNavigationRestoreDone = false;
 
@@ -264,6 +270,140 @@ function syncFilterControl() {
   }
 }
 
+function getRecentClassesElements() {
+  return {
+    root: document.getElementById('recent-classes'),
+    trigger: document.getElementById('btn-recent-classes'),
+    panel: document.getElementById('recent-classes-panel'),
+    list: document.getElementById('recent-classes-list'),
+    count: document.getElementById('recent-classes-count'),
+    status: document.getElementById('recent-classes-status'),
+  };
+}
+
+function setRecentClassesDiagnostics(meta = {}) {
+  const { root } = getRecentClassesElements();
+  if (!root) return;
+  const state = recentClasses.length ? 'ready' : 'empty';
+  const source = meta.source ?? pendingRecentMetadata.source ?? 'memory';
+  const pruned = Number.isFinite(meta.pruned) ? meta.pruned : Number.isFinite(pendingRecentMetadata.pruned) ? pendingRecentMetadata.pruned : 0;
+  const lastAction = meta.lastAction ?? pendingRecentMetadata.lastAction ?? 'render';
+  root.dataset.recentState = state;
+  root.dataset.recentCount = String(recentClasses.length);
+  root.dataset.recentSource = source;
+  root.dataset.recentPruned = String(pruned);
+  root.dataset.recentLastAction = lastAction;
+  pendingRecentMetadata = { source, pruned, lastAction };
+}
+
+function persistRecentClasses(meta = {}) {
+  try {
+    localStorage.setItem(RECENT_CLASSES_STORAGE_KEY, JSON.stringify(recentClasses));
+    setRecentClassesDiagnostics({ source: meta.source || 'localStorage', pruned: meta.pruned ?? 0, lastAction: meta.lastAction || 'persist' });
+  } catch {
+    setRecentClassesDiagnostics({ source: 'memory', pruned: meta.pruned ?? 0, lastAction: meta.lastAction || 'persist-failed' });
+  }
+}
+
+function renderRecentClasses(meta = {}) {
+  const { root, trigger, panel, list, count, status } = getRecentClassesElements();
+  if (!root || !trigger || !panel || !list || !count || !status) return;
+
+  count.textContent = String(recentClasses.length);
+  status.textContent = recentClasses.length
+    ? `${recentClasses.length} saved`
+    : (meta.emptyLabel || 'No classes yet');
+
+  if (!recentClasses.length) {
+    list.innerHTML = '<div class="recent-empty" data-recent-empty="true">Open a class to keep it within reach here.</div>';
+  } else {
+    list.innerHTML = recentClasses.map((entry, index) => {
+      const pkg = entry.fqn.split('.').slice(0, -1).join('.');
+      return `<button class="recent-item" type="button" data-recent-fqn="${esc(entry.fqn)}" data-recent-index="${index}" role="listitem">
+        <span class="recent-item-main">
+          <span class="recent-item-name">${esc(entry.name || entry.fqn.split('.').pop())}</span>
+          <span class="recent-item-pkg">${esc(pkg)}</span>
+        </span>
+        <span class="recent-item-order">${index === 0 ? 'Latest' : `#${index + 1}`}</span>
+      </button>`;
+    }).join('');
+  }
+
+  trigger.setAttribute('aria-expanded', recentOpen ? 'true' : 'false');
+  panel.hidden = !recentOpen;
+  setRecentClassesDiagnostics(meta);
+}
+
+function queueRecentClassesRender(meta = {}) {
+  if (meta.source || Number.isFinite(meta.pruned) || meta.lastAction) {
+    pendingRecentMetadata = {
+      source: meta.source ?? pendingRecentMetadata.source,
+      pruned: Number.isFinite(meta.pruned) ? meta.pruned : pendingRecentMetadata.pruned,
+      lastAction: meta.lastAction ?? pendingRecentMetadata.lastAction,
+    };
+  }
+  if (pendingRecentRender) return;
+  pendingRecentRender = true;
+  queueMicrotask(() => {
+    pendingRecentRender = false;
+    renderRecentClasses(pendingRecentMetadata);
+  });
+}
+
+function setRecentClassesOpen(nextOpen) {
+  recentOpen = !!nextOpen;
+  queueRecentClassesRender({ lastAction: recentOpen ? 'panel-open' : 'panel-close' });
+}
+
+function loadRecentClasses() {
+  let raw = [];
+  let source = 'localStorage';
+  try {
+    raw = JSON.parse(localStorage.getItem(RECENT_CLASSES_STORAGE_KEY) || '[]');
+    if (!Array.isArray(raw)) raw = [];
+  } catch {
+    raw = [];
+    source = 'invalid-storage';
+  }
+
+  const seen = new Set();
+  let pruned = 0;
+  recentClasses = [];
+
+  raw.forEach(entry => {
+    const fqn = typeof entry === 'string' ? entry : entry?.fqn;
+    if (!fqn || seen.has(fqn) || !API.classes[fqn]) {
+      pruned++;
+      return;
+    }
+    seen.add(fqn);
+    const cls = API.classes[fqn];
+    recentClasses.push({
+      fqn,
+      name: cls.simple_name || fqn.split('.').pop(),
+    });
+  });
+
+  if (recentClasses.length > RECENT_CLASSES_LIMIT) {
+    pruned += recentClasses.length - RECENT_CLASSES_LIMIT;
+    recentClasses = recentClasses.slice(0, RECENT_CLASSES_LIMIT);
+  }
+
+  persistRecentClasses({ source, pruned, lastAction: 'load' });
+  queueRecentClassesRender({ source, pruned, lastAction: 'load', emptyLabel: pruned ? 'No valid recent classes' : 'No classes yet' });
+}
+
+function rememberRecentClass(fqn) {
+  if (!fqn || !API.classes[fqn]) return;
+  const cls = API.classes[fqn];
+  recentClasses = [
+    { fqn, name: cls.simple_name || fqn.split('.').pop() },
+    ...recentClasses.filter(entry => entry.fqn !== fqn),
+  ].slice(0, RECENT_CLASSES_LIMIT);
+  persistRecentClasses({ source: 'localStorage', pruned: 0, lastAction: 'remember' });
+  queueRecentClassesRender({ source: 'localStorage', pruned: 0, lastAction: 'remember' });
+}
+
 function setCurrentFilter(filter) {
   currentFilter = filter;
   syncFilterControl();
@@ -322,6 +462,7 @@ function init() {
 
   buildSearchIndex(API);
   buildClassList();
+  loadRecentClasses();
   setupEvents();
   initSplitter('sidebar-splitter', 'sidebar',       'splitW-sidebar');
   initSplitter('classes-splitter', 'detail-panel', 'splitW-classes');
@@ -589,6 +730,7 @@ function selectClass(fqn, matchInfo, jumpToMethod) {
     activateTab(activeTabIdx);
   }
 
+  rememberRecentClass(fqn);
   if (jumpToMethod) showSource(API.classes[fqn], jumpToMethod);
 }
 
@@ -688,6 +830,34 @@ function setupEvents() {
   if (filterSelect) {
     filterSelect.addEventListener('change', () => setCurrentFilter(filterSelect.value));
   }
+
+  const recentEls = getRecentClassesElements();
+  recentEls.trigger?.addEventListener('click', e => {
+    e.stopPropagation();
+    setRecentClassesOpen(!recentOpen);
+  });
+  recentEls.list?.addEventListener('click', e => {
+    const item = e.target.closest('[data-recent-fqn]');
+    if (!item) return;
+    const fqn = item.dataset.recentFqn;
+    if (!fqn || !API.classes[fqn]) {
+      recentClasses = recentClasses.filter(entry => entry.fqn !== fqn);
+      persistRecentClasses({ source: 'localStorage', pruned: 1, lastAction: 'prune-missing' });
+      queueRecentClassesRender({ source: 'localStorage', pruned: 1, lastAction: 'prune-missing' });
+      return;
+    }
+    switchTab('classes');
+    selectClass(fqn, null);
+    setRecentClassesOpen(false);
+  });
+  document.addEventListener('click', e => {
+    const { root } = getRecentClassesElements();
+    if (!recentOpen || !root || root.contains(e.target)) return;
+    setRecentClassesOpen(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && recentOpen) setRecentClassesOpen(false);
+  });
 
   // Event delegation for class list (search results + tree items)
   document.getElementById('class-list').addEventListener('click', e => {

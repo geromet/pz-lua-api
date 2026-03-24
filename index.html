@@ -22,6 +22,19 @@
     <input id="global-search" type="text" placeholder="Search classes, methods, fields… (press /)" autocomplete="off">
     <button id="btn-search-clear" class="search-clear" title="Clear search">×</button>
   </div>
+  <div id="recent-classes" class="recent-classes" aria-label="Recently viewed classes" data-recent-state="empty" data-recent-count="0" data-recent-source="boot" data-recent-pruned="0">
+    <button id="btn-recent-classes" class="recent-trigger" type="button" aria-expanded="false" aria-controls="recent-classes-panel">
+      <span class="recent-trigger-label">Recent</span>
+      <span id="recent-classes-count" class="recent-count">0</span>
+    </button>
+    <div id="recent-classes-panel" class="recent-panel" hidden>
+      <div class="recent-panel-header">
+        <span class="recent-panel-title">Recently viewed</span>
+        <span id="recent-classes-status" class="recent-panel-status">No classes yet</span>
+      </div>
+      <div id="recent-classes-list" class="recent-list" role="list"></div>
+    </div>
+  </div>
   <div class="header-summary" aria-label="API summary">
     <span class="summary-pill summary-pill-exposed"><span class="hstat-dot"></span><span id="stat-exposed">…</span><span class="summary-label">setExposed</span></span>
     <span class="summary-pill summary-pill-tagged"><span class="hstat-dot"></span><span id="stat-tagged">…</span><span class="summary-label">@UsedFromLua</span></span>
