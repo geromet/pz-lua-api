@@ -46,7 +46,7 @@ PY`
 
 ## Tasks
 
-- [ ] **T01: Serialize and restore shareable URL navigation state** `est:2h`
+- [x] **T01: Serialize and restore shareable URL navigation state** `est:2h`
   - Why: This is the core contract of S08. The URL needs to become the authoritative shareable representation of the current browsing state without fighting the existing hash/tab/history logic.
   - Files: `js/app.js`, `.gsd/test/s08_navigation_state.py`, `.gsd/test/run.py`
   - Do: Refactor the existing hash-only navigation flow in `js/app.js` into explicit state serialize/parse/apply helpers that preserve `?v=` while encoding filter/search/top-level tab/content tab/class selection in the URL; update URL state whenever those controls change without full reload; restore state on initial load in an order that respects API load, existing tabs, globals mode, and source/detail activation; and expose DOM-visible nav-state diagnostics so invalid or partial URL input is inspectable in tests.

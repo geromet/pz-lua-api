@@ -50,11 +50,8 @@ function setupVersionDropdown(manifest, currentId) {
   ).join('');
   sel.style.display = '';
   sel.addEventListener('change', () => {
-    const p = new URLSearchParams(location.search);
-    p.set('v', sel.value);
-    // Preserve existing hash (currently open class) across version switch
-    const hash = location.hash;
-    location.href = `${location.pathname}?${p.toString()}${hash}`;
+    const nextUrl = buildNavigationUrl(captureNavigationState(), { versionOverride: sel.value });
+    location.href = nextUrl;
   });
 }
 
@@ -67,6 +64,190 @@ const FILTER_LABELS = {
   callable: 'Callable',
   enum: 'Enums',
 };
+
+const NAV_QUERY_KEYS = ['tab', 'class', 'search', 'filter', 'ctab'];
+let pendingUrlStateSync = false;
+let initialNavigationRestoreDone = false;
+
+function getNavigationDiagnosticsEl() {
+  return document.getElementById('content');
+}
+
+function setNavigationDiagnostics(partial) {
+  const el = getNavigationDiagnosticsEl();
+  if (!el) return;
+  const mapping = {
+    serializedState: 'navSerializedState',
+    parsedState: 'navParsedState',
+    appliedState: 'navAppliedState',
+    restoreStatus: 'navRestoreStatus',
+    restoreReason: 'navRestoreReason',
+    restoreError: 'navRestoreError',
+    urlStateSource: 'navUrlStateSource',
+    urlStateHref: 'navUrlStateHref',
+  };
+  Object.entries(partial).forEach(([key, value]) => {
+    const datasetKey = mapping[key];
+    if (!datasetKey) return;
+    if (value === undefined || value === null || value === '') delete el.dataset[datasetKey];
+    else el.dataset[datasetKey] = typeof value === 'string' ? value : JSON.stringify(value);
+  });
+}
+
+function sanitizeNavigationState(state) {
+  return {
+    tab: state?.tab === 'globals' ? 'globals' : 'classes',
+    classFqn: typeof state?.classFqn === 'string' ? state.classFqn : '',
+    search: typeof state?.search === 'string' ? state.search : '',
+    filter: FILTER_LABELS[state?.filter] ? state.filter : 'all',
+    ctab: state?.ctab === 'source' ? 'source' : 'detail',
+  };
+}
+
+function captureNavigationState() {
+  return sanitizeNavigationState({
+    tab: currentTab,
+    classFqn: currentTab === 'classes' ? currentClass : '',
+    search: currentSearch,
+    filter: currentFilter,
+    ctab: currentCtab,
+  });
+}
+
+function buildNavigationUrl(state, options = {}) {
+  const serialized = sanitizeNavigationState(state);
+  const params = new URLSearchParams(location.search);
+  NAV_QUERY_KEYS.forEach(key => params.delete(key));
+
+  if (options.versionOverride) params.set('v', options.versionOverride);
+  if (serialized.tab !== 'classes') params.set('tab', serialized.tab);
+  if (serialized.classFqn) params.set('class', serialized.classFqn);
+  if (serialized.search) params.set('search', serialized.search);
+  if (serialized.filter !== 'all') params.set('filter', serialized.filter);
+  if (serialized.ctab !== 'detail') params.set('ctab', serialized.ctab);
+
+  const query = params.toString();
+  return `${location.pathname}${query ? `?${query}` : ''}`;
+}
+
+function syncNavigationUrl(options = {}) {
+  const serialized = captureNavigationState();
+  setNavigationDiagnostics({
+    serializedState: serialized,
+    urlStateHref: buildNavigationUrl(serialized),
+  });
+  if (_restoringState && !options.force) return;
+
+  const nextUrl = buildNavigationUrl(serialized, options);
+  const currentUrl = `${location.pathname}${location.search}`;
+  if (nextUrl === currentUrl) return;
+  history.replaceState(null, '', nextUrl);
+}
+
+function queueNavigationUrlSync(options = {}) {
+  if (pendingUrlStateSync) return;
+  pendingUrlStateSync = true;
+  queueMicrotask(() => {
+    pendingUrlStateSync = false;
+    syncNavigationUrl(options);
+  });
+}
+
+function parseNavigationStateFromLocation() {
+  const params = new URLSearchParams(location.search);
+  const parsed = {
+    tab: params.get('tab') || 'classes',
+    classFqn: params.get('class') || '',
+    search: params.get('search') || '',
+    filter: params.get('filter') || 'all',
+    ctab: params.get('ctab') || 'detail',
+  };
+
+  const hasExplicitState = NAV_QUERY_KEYS.some(key => params.has(key));
+  const result = { state: sanitizeNavigationState(parsed), source: hasExplicitState ? 'query' : 'default' };
+
+  if (!hasExplicitState && location.hash) {
+    const legacy = decodeURIComponent(location.hash.slice(1));
+    result.source = 'hash';
+    if (legacy === 'globals') result.state.tab = 'globals';
+    else result.state.classFqn = legacy;
+  }
+
+  const errors = [];
+  if (parsed.tab && !['classes', 'globals'].includes(parsed.tab)) errors.push(`unsupported tab:${parsed.tab}`);
+  if (parsed.filter && !FILTER_LABELS[parsed.filter]) errors.push(`unsupported filter:${parsed.filter}`);
+  if (parsed.ctab && !['detail', 'source'].includes(parsed.ctab)) errors.push(`unsupported ctab:${parsed.ctab}`);
+  if (result.state.tab === 'globals' && result.state.classFqn) errors.push('globals state cannot target a class');
+  result.errors = errors;
+  return result;
+}
+
+async function restoreNavigationStateFromUrl() {
+  const parsed = parseNavigationStateFromLocation();
+  setNavigationDiagnostics({
+    parsedState: parsed.state,
+    restoreStatus: 'pending',
+    restoreReason: parsed.errors.length ? parsed.errors.join('; ') : '',
+    restoreError: '',
+    urlStateSource: parsed.source,
+    urlStateHref: `${location.pathname}${location.search}${location.hash}`,
+  });
+
+  if (parsed.errors.length) {
+    setNavigationDiagnostics({
+      appliedState: captureNavigationState(),
+      restoreStatus: 'rejected',
+      restoreError: parsed.errors.join('; '),
+    });
+    syncNavigationUrl({ force: true });
+    initialNavigationRestoreDone = true;
+    return;
+  }
+
+  currentSearch = parsed.state.search;
+  const searchEl = document.getElementById('global-search');
+  const clearBtn = document.getElementById('btn-search-clear');
+  if (searchEl) searchEl.value = currentSearch;
+  clearBtn?.classList.toggle('visible', !!currentSearch);
+
+  currentFilter = parsed.state.filter;
+  syncFilterControl();
+  buildClassList();
+
+  try {
+    if (parsed.state.tab === 'globals') {
+      switchTab('globals');
+    } else if (parsed.state.classFqn) {
+      if (!API.classes[parsed.state.classFqn]) {
+        throw new Error(`class not found:${parsed.state.classFqn}`);
+      }
+      switchTab('classes');
+      selectClass(parsed.state.classFqn, null);
+      if (parsed.state.ctab === 'source') await showSource(API.classes[parsed.state.classFqn]);
+      else switchCtab('detail');
+    } else {
+      switchTab('classes');
+      document.getElementById('placeholder').style.display = 'flex';
+    }
+
+    setNavigationDiagnostics({
+      appliedState: captureNavigationState(),
+      restoreStatus: parsed.source === 'default' ? 'defaulted' : 'restored',
+      restoreReason: parsed.source,
+      restoreError: '',
+    });
+  } catch (error) {
+    setNavigationDiagnostics({
+      appliedState: captureNavigationState(),
+      restoreStatus: 'fallback',
+      restoreError: error.message || String(error),
+      restoreReason: parsed.source,
+    });
+  }
+
+  syncNavigationUrl({ force: true });
+  initialNavigationRestoreDone = true;
+}
 
 function syncFilterControl() {
   const select = document.getElementById('filter-select');
@@ -87,6 +268,7 @@ function setCurrentFilter(filter) {
   currentFilter = filter;
   syncFilterControl();
   buildClassList();
+  queueNavigationUrlSync();
 }
 
 function applyPackageBreadcrumb(path) {
@@ -98,6 +280,7 @@ function applyPackageBreadcrumb(path) {
   clearBtn?.classList.toggle('visible', !!currentSearch);
   switchTab('classes');
   buildClassList();
+  queueNavigationUrlSync();
   searchEl.focus();
   searchEl.setSelectionRange(currentSearch.length, currentSearch.length);
 }
@@ -108,6 +291,16 @@ function init() {
   document.getElementById('stat-tagged').textContent  = m.lua_tagged_count;
   document.getElementById('stat-globals').textContent = `${m.total_global_functions} globals`;
   syncFilterControl();
+  setNavigationDiagnostics({
+    serializedState: captureNavigationState(),
+    parsedState: {},
+    appliedState: {},
+    restoreStatus: 'idle',
+    restoreReason: '',
+    restoreError: '',
+    urlStateSource: 'boot',
+    urlStateHref: `${location.pathname}${location.search}${location.hash}`,
+  });
 
   // Build simple-name → [fqn, …] lookup for source class-ref linking
   // Fast path: use precomputed maps from lua_api.json if present
@@ -139,11 +332,7 @@ function init() {
   navHistory.push({type: 'placeholder'});
   navIndex = 0;
   updateNavButtons();
-  if (location.hash) {
-    const val = decodeURIComponent(location.hash.slice(1));
-    if (val === 'globals') switchTab('globals');
-    else selectClass(val);
-  }
+  restoreNavigationStateFromUrl();
 }
 
 // ── Resizable splitters ───────────────────────────────────────────────────
@@ -213,7 +402,7 @@ async function applyState(s) {
       document.getElementById('source-panel').classList.remove('visible');
       currentClass = null;
       document.getElementById('placeholder').style.display = 'flex';
-      location.hash = '';
+      queueNavigationUrlSync({ force: true });
       return;
     }
     if (s.type === 'globals') {
@@ -228,11 +417,13 @@ async function applyState(s) {
       showGlobalsPanel(true);
       document.getElementById('placeholder').style.display = 'none';
       await showGlobalSource(s.javaMethod);
+      queueNavigationUrlSync({ force: true });
       return;
     }
     if (s.type === 'class') {
       switchTab('classes');
       selectClass(s.fqn, null);
+      if (s.ctab === 'source' && API.classes[s.fqn]) await showSource(API.classes[s.fqn]);
       return;
     }
   } finally {
@@ -304,12 +495,12 @@ function activateTab(idx) {
   currentClass  = tab.fqn;
   methodSearch  = tab.methodSearch;
   fieldSearch   = tab.fieldSearch;
-  location.hash = encodeURIComponent(tab.fqn);
   document.getElementById('placeholder').style.display = 'none';
   document.getElementById('content-tabs').classList.add('visible');
   showGlobalsPanel(false);
   renderClassDetail(tab.fqn);
   switchCtab(tab.ctab);
+  queueNavigationUrlSync();
   // Restore scroll after render; also load source panel if needed
   requestAnimationFrame(() => {
     document.getElementById('detail-panel').scrollTop = tab.scrollDetail || 0;
@@ -338,8 +529,8 @@ function closeTab(idx) {
     document.getElementById('detail-panel').classList.remove('visible');
     document.getElementById('source-panel').classList.remove('visible');
     document.getElementById('placeholder').style.display = 'flex';
-    location.hash = '';
     renderTabBar();
+    queueNavigationUrlSync();
     return;
   }
   if (idx === activeTabIdx) {
@@ -413,6 +604,7 @@ function switchCtab(name) {
     document.getElementById('detail-panel').classList.toggle('visible', name === 'detail');
     document.getElementById('source-panel').classList.toggle('visible', name === 'source');
   }
+  queueNavigationUrlSync();
 }
 
 // ── Split layout ──────────────────────────────────────────────────────────
@@ -443,13 +635,13 @@ function switchTab(tab) {
   document.getElementById('tab-bar').classList.toggle('visible', tab === 'classes' && tabs.length > 0);
   if (tab === 'globals') {
     initGlobals();
-    location.hash = 'globals';
     navPush({type: 'globals'});
   } else {
     showGlobalsPanel(false);
     if (currentClass) renderClassDetail(currentClass);
     else document.getElementById('placeholder').style.display = 'flex';
   }
+  queueNavigationUrlSync();
 }
 
 // ── Events ────────────────────────────────────────────────────────────────
@@ -563,13 +755,18 @@ function setupEvents() {
   searchEl.addEventListener('input', e => {
     clearTimeout(searchTimer);
     searchClearBtn.classList.toggle('visible', !!searchEl.value);
-    searchTimer = setTimeout(() => { currentSearch = e.target.value; buildClassList(); }, 150);
+    searchTimer = setTimeout(() => {
+      currentSearch = e.target.value;
+      buildClassList();
+      queueNavigationUrlSync();
+    }, 150);
   });
   searchClearBtn.addEventListener('click', () => {
     searchEl.value = '';
     currentSearch = '';
     searchClearBtn.classList.remove('visible');
     buildClassList();
+    queueNavigationUrlSync();
     searchEl.focus();
   });
   searchEl.addEventListener('keydown', e => {
