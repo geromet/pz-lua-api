@@ -1,0 +1,1 @@
+{"simple_name":"EntityEventType","source_file":"zombie/entity/events/EntityEventType.java","set_exposed":true,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"AddedToWorld","type":"EntityEventType","lua_tagged":false}],"nested_types":[]}

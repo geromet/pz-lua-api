@@ -1,0 +1,1 @@
+{"simple_name":"IsoDirectionSet","source_file":"zombie/iso/IsoDirectionSet.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getNext","return_type":"IsoDirections","params":[],"lua_tagged":false}],"fields":[{"name":"set","type":"int","lua_tagged":false}],"nested_types":[]}

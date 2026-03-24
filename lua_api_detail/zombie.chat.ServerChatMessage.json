@@ -1,0 +1,1 @@
+{"simple_name":"ServerChatMessage","source_file":"zombie/chat/ServerChatMessage.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"setAuthor","return_type":"void","params":[{"type":"String","name":"author"}],"lua_tagged":false}],"fields":[],"nested_types":[],"extends":"zombie.chat.ChatMessage"}

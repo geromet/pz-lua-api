@@ -1,0 +1,1 @@
+{"simple_name":"IsoRadio","source_file":"zombie/iso/objects/IsoRadio.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getObjectName","return_type":"String","params":[],"lua_tagged":false}],"fields":[],"nested_types":[],"extends":"zombie.iso.objects.IsoWaveSignal"}

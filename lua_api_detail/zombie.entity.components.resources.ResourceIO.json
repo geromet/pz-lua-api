@@ -1,0 +1,1 @@
+{"simple_name":"ResourceIO","source_file":"zombie/entity/components/resources/ResourceIO.java","set_exposed":true,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"Input","type":"ResourceIO","lua_tagged":false},{"name":"Output","type":"ResourceIO","lua_tagged":false},{"name":"Any","type":"ResourceIO","lua_tagged":false}],"nested_types":[]}

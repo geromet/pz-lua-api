@@ -1,0 +1,1 @@
+{"simple_name":"DebugLog","source_file":"zombie/debug/DebugLog.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"RepeatWatcher","kind":"class","fqn":"zombie.debug.DebugLog.RepeatWatcher"},{"name":"OutputStreamWrapper","kind":"class","fqn":"zombie.debug.DebugLog.OutputStreamWrapper"}]}

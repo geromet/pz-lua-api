@@ -1,0 +1,1 @@
+{"simple_name":"ResourceFlag","source_file":"zombie/entity/components/resources/ResourceFlag.java","set_exposed":true,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"AutoDecay","type":"ResourceFlag","lua_tagged":false},{"name":"Temporary","type":"ResourceFlag","lua_tagged":false}],"nested_types":[],"implements":["zombie.entity.util.enums.IOEnum"]}

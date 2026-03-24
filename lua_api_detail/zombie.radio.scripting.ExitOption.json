@@ -1,0 +1,1 @@
+{"simple_name":"ExitOption","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getScriptname","return_type":"String","params":[],"lua_tagged":false},{"name":"getChance","return_type":"int","params":[],"lua_tagged":false},{"name":"getStartDelay","return_type":"int","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

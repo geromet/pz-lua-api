@@ -5,7 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Project Zomboid Lua API</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/styles/atom-one-dark.min.css">
-<link rel="stylesheet" href="app.css">
+<style>
+/* Critical CSS — above-the-fold layout rendered before app.css loads */
+:root{--bg:#17181c;--bg2:#1f2127;--bg3:#282b33;--bg4:#313540;--border:#333844;--text:#e1e5ec;--text-dim:#98a0ae;--text-muted:#6f7786;--accent:#c98d38;--accent2:#73a7ff;--green:#77c46f;--danger:#e06c75;--col-exposed:#c98d38;--col-tagged:#77c46f;--sidebar-w:320px;--panel-min-h:300px;--shadow-soft:0 14px 38px rgba(0,0,0,.28)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(180deg,#17181c 0%,#14161a 100%);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+#header{background:rgba(31,33,39,.96);border-bottom:1px solid rgba(255,255,255,.05);padding:8px 14px;display:grid;grid-template-columns:auto auto minmax(240px,1.2fr) auto auto auto;align-items:center;gap:10px;flex-shrink:0;box-shadow:0 10px 26px rgba(0,0,0,.16)}
+#header h1{font-size:15px;font-weight:650;color:#f0f3f8;white-space:nowrap;letter-spacing:.02em}
+.header-brand{display:flex;flex-direction:column;gap:2px;min-width:0}
+.header-subtitle{font-size:11px;color:var(--text-muted);white-space:nowrap}
+#tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{padding:7px 18px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-dim);font-size:13px;user-select:none}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+#main{display:flex;flex:1;overflow:hidden}
+#sidebar{flex:0 0 var(--sidebar-w);min-width:150px;background:linear-gradient(180deg,rgba(31,33,39,.98) 0%,rgba(27,29,35,.98) 100%);display:flex;flex-direction:column;overflow:hidden}
+#content{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;background:linear-gradient(180deg,#17191e 0%,#15171c 100%)}
+#loading{display:flex;align-items:center;justify-content:center;flex:1;flex-direction:column;gap:12px;color:var(--text-dim)}
+.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.08);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.splitter{width:4px;cursor:col-resize;flex-shrink:0;background:var(--border);transition:background .15s;z-index:1}
+#sidebar-splitter{display:block}
+</style>
+<link rel="preload" href="app.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="app.css"></noscript>
 </head>
 <body>
 
@@ -161,5 +183,12 @@
 <script src="js/class-detail.js?v=3"></script>
 <script src="js/globals.js?v=3"></script>
 <script src="js/app.js?v=3"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(function(r) { console.info('[SW] registered', r.scope); })
+    .catch(function(e) { console.error('[SW] registration failed', e); });
+}
+</script>
 </body>
 </html>

@@ -1,0 +1,1 @@
+{"simple_name":"HaloTextHelper","source_file":"zombie/characters/HaloTextHelper.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"ColorRGB","kind":"class","fqn":"zombie.characters.HaloTextHelper.ColorRGB"}]}

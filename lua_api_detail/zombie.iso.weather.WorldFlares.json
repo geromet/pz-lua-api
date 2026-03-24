@@ -1,0 +1,1 @@
+{"simple_name":"WorldFlares","source_file":"zombie/iso/weather/WorldFlares.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"Flare","kind":"class","fqn":"zombie.iso.weather.WorldFlares.Flare"},{"name":"PlayerFlareLightInfo","kind":"class","fqn":"zombie.iso.weather.WorldFlares.PlayerFlareLightInfo"}]}

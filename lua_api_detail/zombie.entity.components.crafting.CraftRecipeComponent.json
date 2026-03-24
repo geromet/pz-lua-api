@@ -1,0 +1,1 @@
+{"simple_name":"CraftRecipeComponent","source_file":"zombie/entity/components/crafting/CraftRecipeComponent.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[],"extends":"zombie.entity.Component"}

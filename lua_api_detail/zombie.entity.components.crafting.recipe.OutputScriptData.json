@@ -1,0 +1,1 @@
+{"simple_name":"OutputScriptData","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getOutputScript","return_type":"OutputScript","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

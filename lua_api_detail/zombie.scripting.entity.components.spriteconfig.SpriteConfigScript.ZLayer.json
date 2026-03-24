@@ -1,0 +1,1 @@
+{"simple_name":"ZLayer","source_file":"zombie/scripting/entity/components/spriteconfig/SpriteConfigScript.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getHeight","return_type":"int","params":[],"lua_tagged":false},{"name":"getRow","return_type":"XRow","params":[{"type":"int","name":"y"}],"lua_tagged":false}],"fields":[],"nested_types":[]}

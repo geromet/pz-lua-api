@@ -1,0 +1,1 @@
+{"simple_name":"IsoDummyCameraCharacter","source_file":"zombie/characters/IsoDummyCameraCharacter.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"update","return_type":"void","params":[],"lua_tagged":false}],"fields":[],"nested_types":[],"extends":"zombie.characters.IsoGameCharacter"}

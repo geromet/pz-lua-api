@@ -1,0 +1,1 @@
+{"simple_name":"XuiTableCellScript","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"isCellHasLoaded","return_type":"boolean","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

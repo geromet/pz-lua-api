@@ -1,0 +1,1 @@
+{"simple_name":"CraftRecipeGroup","source_file":"zombie/scripting/objects/CraftRecipeGroup.java","set_exposed":true,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"OPEN_BOX","type":"CraftRecipeGroup","lua_tagged":false}],"nested_types":[]}

@@ -1,0 +1,1 @@
+{"simple_name":"UIManager","source_file":"zombie/ui/UIManager.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"FadeInfo","kind":"class","fqn":"zombie.ui.UIManager.FadeInfo"},{"name":"BlinkInfo","kind":"class","fqn":"zombie.ui.UIManager.BlinkInfo"},{"name":"Sync","kind":"class","fqn":"zombie.ui.UIManager.Sync"}]}

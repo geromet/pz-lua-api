@@ -1,0 +1,1 @@
+{"simple_name":"SurvivorType","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"Friendly","type":"SurvivorType","lua_tagged":false},{"name":"Neutral","type":"SurvivorType","lua_tagged":false},{"name":"Aggressive","type":"SurvivorType","lua_tagged":false}],"nested_types":[]}

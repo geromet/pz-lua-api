@@ -20,11 +20,11 @@ function buildSearchIndex(api) {
       simpleLower: simple.toLowerCase(),
       fqnLower:    fqn.toLowerCase(),
       // Join all method names with \0 separator for fast substring search
-      methodsLower: cls.methods.map(m => m.name.toLowerCase()).join('\0'),
-      fieldsLower:  cls.fields.map(f => f.name.toLowerCase()).join('\0'),
+      methodsLower: (cls.methods || []).map(m => m.name.toLowerCase()).join('\0'),
+      fieldsLower:  (cls.fields  || []).map(f => f.name.toLowerCase()).join('\0'),
       // Cache method/field counts for match info
-      methodNames: cls.methods.map(m => m.name.toLowerCase()),
-      fieldNames:  cls.fields.map(f => f.name.toLowerCase()),
+      methodNames: (cls.methods || []).map(m => m.name.toLowerCase()),
+      fieldNames:  (cls.fields  || []).map(f => f.name.toLowerCase()),
       cls,
     });
   }

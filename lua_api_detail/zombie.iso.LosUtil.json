@@ -1,0 +1,1 @@
+{"simple_name":"LosUtil","source_file":"zombie/iso/LosUtil.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"TestResults","kind":"enum","fqn":"zombie.iso.LosUtil.TestResults"},{"name":"PerPlayerData","kind":"class","fqn":"zombie.iso.LosUtil.PerPlayerData"}]}

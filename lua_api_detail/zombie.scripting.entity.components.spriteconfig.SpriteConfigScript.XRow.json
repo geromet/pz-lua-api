@@ -1,0 +1,1 @@
+{"simple_name":"XRow","source_file":"zombie/scripting/entity/components/spriteconfig/SpriteConfigScript.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getWidth","return_type":"int","params":[],"lua_tagged":false},{"name":"getTile","return_type":"TileScript","params":[{"type":"int","name":"x"}],"lua_tagged":false}],"fields":[],"nested_types":[]}

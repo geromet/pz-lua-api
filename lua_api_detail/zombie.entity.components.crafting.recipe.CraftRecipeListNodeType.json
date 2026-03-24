@@ -1,0 +1,1 @@
+{"simple_name":"CraftRecipeListNodeType","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"GROUP","type":"CraftRecipeListNodeType","lua_tagged":false},{"name":"RECIPE","type":"CraftRecipeListNodeType","lua_tagged":false}],"nested_types":[]}

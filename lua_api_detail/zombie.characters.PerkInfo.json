@@ -1,0 +1,1 @@
+{"simple_name":"PerkInfo","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getLevel","return_type":"int","params":[],"lua_tagged":false}],"fields":[{"name":"level","type":"int","lua_tagged":false},{"name":"perk","type":"PerkFactory.Perk","lua_tagged":false}],"nested_types":[]}

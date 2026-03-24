@@ -1,0 +1,1 @@
+{"simple_name":"DoubleServerOption","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"asConfigOption","return_type":"ConfigOption","params":[],"lua_tagged":false},{"name":"getTooltip","return_type":"String","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

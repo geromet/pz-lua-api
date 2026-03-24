@@ -1,0 +1,1 @@
+{"simple_name":"LuaComponentScript","source_file":"zombie/scripting/entity/components/lua/LuaComponentScript.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[],"extends":"zombie.scripting.entity.ComponentScript"}

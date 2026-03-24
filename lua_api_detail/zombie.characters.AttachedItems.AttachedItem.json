@@ -1,0 +1,1 @@
+{"simple_name":"AttachedItem","source_file":"zombie/characters/AttachedItems/AttachedItem.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getLocation","return_type":"String","params":[],"lua_tagged":false},{"name":"getItem","return_type":"InventoryItem","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

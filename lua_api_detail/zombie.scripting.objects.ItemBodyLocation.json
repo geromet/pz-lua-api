@@ -1,0 +1,1 @@
+{"simple_name":"ItemBodyLocation","source_file":"zombie/scripting/objects/ItemBodyLocation.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"toString","return_type":"String","params":[],"lua_tagged":false},{"name":"getTranslationName","return_type":"String","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

@@ -1,0 +1,1 @@
+{"simple_name":"ImprovedFog","source_file":"zombie/iso/weather/fog/ImprovedFog.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"RectangleIterator","kind":"class","fqn":"zombie.iso.weather.fog.ImprovedFog.RectangleIterator"},{"name":"FogRectangle","kind":"class","fqn":"zombie.iso.weather.fog.ImprovedFog.FogRectangle"}]}

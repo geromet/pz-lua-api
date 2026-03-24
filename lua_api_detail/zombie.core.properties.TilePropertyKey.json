@@ -1,0 +1,1 @@
+{"simple_name":"TilePropertyKey","source_file":"zombie/core/properties/TilePropertyKey.java","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"toString","return_type":"String","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

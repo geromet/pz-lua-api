@@ -1,0 +1,1 @@
+{"simple_name":"ColorSet","source_file":"zombie/core/Colors.java","set_exposed":true,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"Game","type":"ColorSet","lua_tagged":false},{"name":"Standard","type":"ColorSet","lua_tagged":false},{"name":"ColorBlind","type":"ColorSet","lua_tagged":false}],"nested_types":[]}

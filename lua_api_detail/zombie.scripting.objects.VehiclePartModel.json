@@ -1,0 +1,1 @@
+{"simple_name":"VehiclePartModel","source_file":"zombie/scripting/objects/VehiclePartModel.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[{"name":"partId","type":"String","lua_tagged":false},{"name":"partModelId","type":"String","lua_tagged":false},{"name":"modelId","type":"String","lua_tagged":false}],"nested_types":[]}

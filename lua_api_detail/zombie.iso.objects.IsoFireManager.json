@@ -1,0 +1,1 @@
+{"simple_name":"IsoFireManager","source_file":"zombie/iso/objects/IsoFireManager.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"FireSounds","kind":"class","fqn":"zombie.iso.objects.IsoFireManager.FireSounds"}]}

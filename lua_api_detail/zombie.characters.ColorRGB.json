@@ -1,0 +1,1 @@
+{"simple_name":"ColorRGB","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[{"name":"r","type":"int","lua_tagged":false},{"name":"g","type":"int","lua_tagged":false},{"name":"b","type":"int","lua_tagged":false},{"name":"a","type":"int","lua_tagged":false}],"nested_types":[]}

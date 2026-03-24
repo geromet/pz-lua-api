@@ -1,0 +1,1 @@
+{"simple_name":"FilterType","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"Whitelist","type":"FilterType","lua_tagged":false},{"name":"Blacklist","type":"FilterType","lua_tagged":false}],"nested_types":[]}

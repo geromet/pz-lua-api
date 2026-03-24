@@ -1,0 +1,1 @@
+{"simple_name":"OutputScriptData","source_file":"zombie/entity/components/crafting/recipe/CraftRecipeData.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getOutputScript","return_type":"OutputScript","params":[],"lua_tagged":false}],"fields":[],"nested_types":[],"extends":"zombie.entity.components.crafting.recipe.CraftRecipeData.CacheData"}

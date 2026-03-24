@@ -1,0 +1,1 @@
+{"simple_name":"LuaComponent","source_file":"zombie/entity/components/lua/LuaComponent.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"LuaCall","kind":"enum","fqn":"zombie.entity.components.lua.LuaComponent.LuaCall"}],"extends":"zombie.entity.Component"}

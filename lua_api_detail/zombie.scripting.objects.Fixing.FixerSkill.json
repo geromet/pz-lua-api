@@ -1,0 +1,1 @@
+{"simple_name":"FixerSkill","source_file":"zombie/scripting/objects/Fixing.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getSkillName","return_type":"String","params":[],"lua_tagged":false},{"name":"getSkillLevel","return_type":"int","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

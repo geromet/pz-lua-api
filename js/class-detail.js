@@ -19,11 +19,36 @@ function renderBreadcrumbs(fqn) {
 }
 
 function renderClassDetail(fqn) {
-  const cls    = API.classes[fqn];
-  const simple = fqn.split('.').pop();
-  const panel  = document.getElementById('detail-panel');
+  const panel = document.getElementById('detail-panel');
   panel.dataset.detailState = 'loading';
   panel.dataset.detailFqn = fqn;
+
+  // In split mode the index entry may lack methods/fields — lazy-fetch full detail
+  const cls = API.classes[fqn];
+  if (window._apiSplit && cls && cls.methods === undefined) {
+    panel.innerHTML = `<div class="detail-shell" style="padding:24px;color:var(--text-dim)">Loading class detail…</div>`;
+    fetch(`./lua_api_detail/${encodeURIComponent(fqn)}.json`)
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+        return r.json();
+      })
+      .then(detail => {
+        // Merge full detail back into the live API object so subsequent renders and
+        // search-index operations see the complete data.
+        Object.assign(API.classes[fqn], detail);
+        renderClassDetail(fqn);
+      })
+      .catch(err => {
+        panel.dataset.detailState = 'error';
+        panel.innerHTML = `<div class="detail-shell" style="padding:24px;color:#e06c75">
+          <strong>Failed to load class detail</strong><br>
+          <small>${esc(err.message || String(err))}</small>
+        </div>`;
+      });
+    return;
+  }
+
+  const simple = fqn.split('.').pop();
 
   panel.innerHTML = `
     <div class="detail-shell">

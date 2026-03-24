@@ -28,6 +28,7 @@
 - `python3 -m pytest .gsd/test/run.py -v` — all existing tests still pass
 - `grep -q 'sw.js' index.html` — SW registration wired
 - `grep -q '<style>' index.html` — critical CSS inlined
+- `python3 -c "import json; d=json.load(open('lua_api_index.json')); [d['classes'][k] for k in list(d['classes'])[:5]]; print('index entries have no methods key:', all('methods' not in v for v in d['classes'].values()))"` — confirms index entries are summaries (failure-path diagnostic: if methods present, lazy-fetch won't trigger)
 
 ## Observability / Diagnostics
 
@@ -44,14 +45,14 @@
 
 ## Tasks
 
-- [ ] **T01: Split API JSON and update loader** `est:2h`
+- [x] **T01: Split API JSON and update loader** `est:2h`
   - Why: The 6MB monolithic `lua_api.json` is the primary load bottleneck. This task produces the split files and rewires JS to use them.
   - Files: `scripts/split_api.py`, `js/app.js`, `js/search-index.js`, `js/class-detail.js`
   - Do: Write `scripts/split_api.py` that reads `lua_api.json` and writes `lua_api_index.json` (top-level keys + per-class summary: `set_exposed`, `lua_tagged`, `is_enum`, `method_count`, `field_count`, `source_file`, `simple_name`) and one `lua_api_detail/<fqn>.json` per class (full class object). Update `js/app.js` `loadApi()` to fetch `lua_api_index.json` instead of `lua_api.json`; keep existing fallback to `lua_api.json` if index is absent. Update `js/class-detail.js` `renderClassDetail()` to check if full class data is already in `API.classes[fqn]`; if not, fetch `./lua_api_detail/<fqn>.json`, merge into `API.classes`, then render. Set `#detail-panel` `data-detail-state="loading"` before fetch and `"error"` on failure. Update `js/search-index.js` to build from the lighter index fields.
   - Verify: `python3 scripts/split_api.py && test -f lua_api_index.json && python3 -c "import json,pathlib; d=json.load(open('lua_api_index.json')); assert len(d['classes'])>1000; assert len(list(pathlib.Path('lua_api_detail').glob('*.json')))>1000"`
   - Done when: `lua_api_index.json` and `lua_api_detail/` exist with 1000+ entries each; viewer JS loads without errors when served
 
-- [ ] **T02: Inline critical CSS and add service worker** `est:1.5h`
+- [x] **T02: Inline critical CSS and add service worker** `est:1.5h`
   - Why: Render-blocking `app.css` adds latency on first visit; a service worker makes repeat visits instant.
   - Files: `index.html`, `app.css`, `sw.js`
   - Do: Extract above-the-fold rules (header, sidebar skeleton, loading spinner, basic layout) from `app.css` into an inline `<style>` block in `<head>`; load remaining `app.css` via `<link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">` + `<noscript>` fallback. Write `sw.js`: on install, cache `lua_api_index.json`, `app.css`, all `js/*.js`, `index.html`; on fetch, use cache-first for those assets and network-first (with cache fallback) for `lua_api_detail/*.json`; use a versioned cache name (`pz-api-v1`) so updates bust the cache. Register SW in `js/app.js` or inline script in `index.html`.

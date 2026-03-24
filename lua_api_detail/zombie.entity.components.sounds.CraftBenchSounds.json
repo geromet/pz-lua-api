@@ -1,0 +1,1 @@
+{"simple_name":"CraftBenchSounds","source_file":"zombie/entity/components/sounds/CraftBenchSounds.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getSoundName","return_type":"String","params":[{"type":"String","name":"id"},{"type":"String","name":"param1"}],"lua_tagged":false}],"fields":[],"nested_types":[],"extends":"zombie.entity.Component"}

@@ -1,0 +1,1 @@
+{"simple_name":"BooleanDebugOption","source_file":"zombie/gameStates/TileGeometryState.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[],"extends":"zombie.config.BooleanConfigOption"}

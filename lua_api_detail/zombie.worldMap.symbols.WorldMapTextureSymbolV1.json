@@ -1,0 +1,1 @@
+{"simple_name":"WorldMapTextureSymbolV1","source_file":"zombie/worldMap/worldMap.java","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getSymbolID","return_type":"String","params":[],"lua_tagged":false},{"name":"isTexture","return_type":"boolean","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}

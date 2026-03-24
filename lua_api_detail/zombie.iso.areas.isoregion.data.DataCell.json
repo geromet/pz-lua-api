@@ -1,0 +1,1 @@
+{"simple_name":"DataCell","source_file":"zombie/iso/areas/isoregion/data/DataCell.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[{"name":"dataRoot","type":"DataRoot","lua_tagged":false}],"nested_types":[]}

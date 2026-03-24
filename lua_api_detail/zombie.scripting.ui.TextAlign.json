@@ -1,0 +1,1 @@
+{"simple_name":"TextAlign","source_file":"zombie/scripting/ui/TextAlign.java","set_exposed":true,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"Left","type":"TextAlign","lua_tagged":false},{"name":"Center","type":"TextAlign","lua_tagged":false},{"name":"Right","type":"TextAlign","lua_tagged":false}],"nested_types":[]}

@@ -1,0 +1,1 @@
+{"simple_name":"WarManager","source_file":"zombie/network/WarManager.java","set_exposed":true,"lua_tagged":true,"is_enum":false,"methods":[],"fields":[],"nested_types":[{"name":"War","kind":"class","fqn":"zombie.network.WarManager.War"},{"name":"State","kind":"enum","fqn":"zombie.network.WarManager.State"}]}

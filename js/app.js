@@ -24,6 +24,42 @@
     activeVersion = entry.id;
   }
 
+  // Try split index first (fast boot); fall back to monolithic lua_api.json.
+  // Only use split mode when no explicit version param is requested and no
+  // versions manifest is active — versioned builds still use their own file.
+  window._apiSplit = false;
+  if (!versionsManifest && !vParam) {
+    try {
+      const idxR = await fetch('./lua_api_index.json');
+      if (idxR.ok) {
+        API = await idxR.json();
+        window._apiSplit = true;
+
+        // Pre-fetch detail for any class specified in the URL so #loading
+        // hides only after the initial class is ready — keeps test fixtures
+        // (and real UX) consistent: hidden #loading = app is fully interactive.
+        const urlParams = new URLSearchParams(location.search);
+        const initialClass = urlParams.get('class') ||
+          (location.hash ? decodeURIComponent(location.hash.slice(1)) : null);
+        if (initialClass && API.classes[initialClass]) {
+          try {
+            const dr = await fetch(`./lua_api_detail/${encodeURIComponent(initialClass)}.json`);
+            if (dr.ok) {
+              const detail = await dr.json();
+              Object.assign(API.classes[initialClass], detail);
+            }
+          } catch { /* non-fatal — renderClassDetail will retry */ }
+        }
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('placeholder').style.display = 'flex';
+        setupVersionDropdown(versionsManifest, activeVersion);
+        init();
+        return;
+      }
+    } catch { /* fall through to monolithic load */ }
+  }
+
   try {
     const r = await fetch(apiFile);
     if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
@@ -712,8 +748,8 @@ function selectClass(fqn, matchInfo, jumpToMethod) {
     if (matchInfo && currentSearch) {
       const s   = currentSearch.toLowerCase();
       const cls = API.classes[fqn];
-      ms = cls.methods.some(m => m.name.toLowerCase().includes(s)) ? currentSearch : '';
-      fs = cls.fields.some(f  => f.name.toLowerCase().includes(s)) ? currentSearch : '';
+      ms = (cls.methods || []).some(m => m.name.toLowerCase().includes(s)) ? currentSearch : '';
+      fs = (cls.fields  || []).some(f => f.name.toLowerCase().includes(s)) ? currentSearch : '';
     }
 
     // Cap at 10 tabs — evict the oldest non-active tab

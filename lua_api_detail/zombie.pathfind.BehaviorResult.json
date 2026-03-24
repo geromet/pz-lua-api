@@ -1,0 +1,1 @@
+{"simple_name":"BehaviorResult","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":true,"methods":[],"fields":[{"name":"Working","type":"BehaviorResult","lua_tagged":false},{"name":"Failed","type":"BehaviorResult","lua_tagged":false},{"name":"Succeeded","type":"BehaviorResult","lua_tagged":false}],"nested_types":[]}

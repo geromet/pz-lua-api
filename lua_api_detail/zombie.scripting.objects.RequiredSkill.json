@@ -1,0 +1,1 @@
+{"simple_name":"RequiredSkill","source_file":"","set_exposed":false,"lua_tagged":true,"is_enum":false,"methods":[{"name":"getPerk","return_type":"PerkFactory.Perk","params":[],"lua_tagged":false},{"name":"getLevel","return_type":"int","params":[],"lua_tagged":false}],"fields":[],"nested_types":[]}
