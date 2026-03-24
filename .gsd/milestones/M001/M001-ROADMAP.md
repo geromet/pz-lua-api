@@ -25,7 +25,7 @@
 
 - [x] **S01: Unblocked Improvements** risk:low depends:[]
   > After this: build-time precomputed data loads on page init; resizable panels work in live browser
-- [ ] **S02: Tab Enhancements** risk:medium depends:[S01]
+- [x] **S02: Tab Enhancements** risk:medium depends:[S01]
   > After this: middle-click opens classes in new tab; hover preview card shows on link hover
 - [ ] **S03: Version Selector** risk:medium depends:[S02]
   > After this: version dropdown appears in toolbar; switching versions reloads API data; URL ?v= param works
