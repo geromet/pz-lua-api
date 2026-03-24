@@ -27,7 +27,7 @@
   > After this: build-time precomputed data loads on page init; resizable panels work in live browser
 - [x] **S02: Tab Enhancements** risk:medium depends:[S01]
   > After this: middle-click opens classes in new tab; hover preview card shows on link hover
-- [ ] **S03: Version Selector** risk:medium depends:[S02]
+- [x] **S03: Version Selector** risk:medium depends:[S02]
   > After this: version dropdown appears in toolbar; switching versions reloads API data; URL ?v= param works
 - [x] **S04: Blocked — Javadoc** risk:low depends:[]
   > After this: methods/fields with Javadoc show collapsible doc toggles (only actionable when original PZ sources available)
