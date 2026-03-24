@@ -41,7 +41,7 @@
   - Verify: Browser screenshot showing dropdown; select different entry → class list reloads; URL `?v=<build>#IsoPlayer` works
   - Done when: All acceptance criteria in TASK-018 pass; no console errors
 
-- [x] **T03: Update docs and commit S03** `est:10m`
+- [ ] **T03: Update docs and commit S03** `est:10m`
   - Why: Keep STATUS.md accurate; archive TASK-018; lock in S03
   - Files: `pz-lua-api-viewer/docs/STATUS.md`, `pz-lua-api-viewer/docs/Tasks/TASK-018-version-selector.md`
   - Do: Prepend completion blockquote to TASK-018; run `python docs/archive.py docs/Tasks/TASK-018-version-selector.md`. Update STATUS.md. Commit and push.

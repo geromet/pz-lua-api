@@ -25,15 +25,15 @@
 
 - [x] **S01: Unblocked Improvements** risk:low depends:[]
   > After this: build-time precomputed data loads on page init; resizable panels work in live browser
-- [x] **S02: Tab Enhancements** risk:medium depends:[S01]
+- [ ] **S02: Tab Enhancements** risk:medium depends:[S01]
   > After this: middle-click opens classes in new tab; hover preview card shows on link hover
-- [x] **S03: Version Selector** risk:medium depends:[S02]
+- [ ] **S03: Version Selector** risk:medium depends:[S02]
   > After this: version dropdown appears in toolbar; switching versions reloads API data; URL ?v= param works
 - [x] **S04: Blocked — Javadoc** risk:low depends:[]
   > After this: methods/fields with Javadoc show collapsible doc toggles (only actionable when original PZ sources available)
-- [x] **S05: Resizable Sidebar** risk:low depends:[]
+- [ ] **S05: Resizable Sidebar** risk:low depends:[]
   > After this: sidebar splitter with drag-to-resize and localStorage persistence
-- [x] **S06: Instant Search & DOM Performance** risk:high depends:[]
+- [ ] **S06: Instant Search & DOM Performance** risk:high depends:[]
   > After this: search results appear as-you-type with no perceptible delay; progressive rendering keeps first frame at 50 DOM nodes
 - [x] **S07: UX Polish** risk:medium depends:[S06]
   > After this: hover prefetch preloads source; header is decluttered; color palette tightened; zero layout shift; breadcrumb trail in detail

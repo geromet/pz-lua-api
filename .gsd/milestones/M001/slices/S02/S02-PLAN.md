@@ -35,7 +35,7 @@
   - Verify: Browser screenshot showing hover card over a class link
   - Done when: Card appears after 400ms; disappears on mouseout; no viewport overflow; no console errors
 
-- [x] **T03: Update docs and commit S02** `est:10m`
+- [ ] **T03: Update docs and commit S02** `est:10m`
   - Why: Keep STATUS.md accurate; lock in S02
   - Files: `pz-lua-api-viewer/docs/STATUS.md`, `pz-lua-api-viewer/docs/Planned_Features/FEAT-007-middle-mouse-new-tab.md`, `pz-lua-api-viewer/docs/Planned_Features/FEAT-014-hover-preview.md`
   - Do: Archive FEAT-007 and FEAT-014 docs using `python docs/archive.py`. Update `docs/STATUS.md`. Commit and push.

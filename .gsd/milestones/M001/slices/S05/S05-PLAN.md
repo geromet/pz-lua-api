@@ -24,7 +24,7 @@
   - Files: `index.html`, `app.css`, `js/app.js`
   - Done: Added `#sidebar-splitter` div between sidebar and content; CSS makes it always visible; `initSplitter('sidebar-splitter', 'sidebar', 'splitW-sidebar')` wired in init()
 
-- [x] **T02: Update docs and commit S05** `est:10m`
+- [ ] **T02: Update docs and commit S05** `est:10m`
   - Why: Archive FEAT-004; update STATUS.md
   - Files: `pz-lua-api-viewer/docs/STATUS.md`, `pz-lua-api-viewer/docs/Planned_Features/FEAT-004-resizable-panels.md`
   - Do: Archive FEAT-004. Update STATUS.md. Commit and push.
