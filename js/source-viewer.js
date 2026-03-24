@@ -337,7 +337,7 @@ async function showSource(cls, jumpToMethod) {
     text = await fetchSource(cls.source_file);
   } catch (e) {
     loadingEl.style.display = 'none';
-    codeEl.textContent = `// Source not available.\n// Run prepare_sources.py, or click "📁 Local sources"\n// and pick your projectzomboid folder.\n\n// Error: ${e.message}`;
+    codeEl.textContent = `// Source not available.\n// Run scripts/prepare_sources.py, or click "📁 Local sources"\n// and pick your projectzomboid folder.\n\n// Error: ${e.message}`;
     hljs.highlightElement(codeEl);
     return;
   }
