@@ -59,7 +59,7 @@ PY`
   - Do: Replace the always-on sidebar filter button wall with a compact control/dropdown backed by the current filter state, compress header stats into a quieter summary row, tighten the palette/typography tokens, add breadcrumb rendering and click behavior in the detail panel, and reserve stable panel/detail loading space with skeleton or placeholder styling rather than late layout expansion.
   - Verify: `python -m pytest .gsd/test/s07_ux_polish.py -k "header or breadcrumbs or layout"`
   - Done when: The header/sidebar consume less vertical space, filters still work through the new control, breadcrumbs render from FQN segments and navigate/filter correctly, and opening a class shows stable reserved space instead of obvious panel jumps.
-- [ ] **T03: Close slice verification and docs for UX polish** `est:45m`
+- [x] **T03: Close slice verification and docs for UX polish** `est:45m`
   - Why: This slice changes visible behavior across interaction, styling, and diagnostics. The finishing task proves the whole slice together and leaves the test entrypoint current for later slices.
   - Files: `.gsd/test/run.py`, `.gsd/test/s07_ux_polish.py`, `.gsd/milestones/M001/slices/S07/S07-PLAN.md`
   - Do: Register the new S07 browser test module in the main test runner, run the full suite, fix any mismatches between the plan and actual verification targets, and ensure the slice plan still matches the shipped file paths and commands.

@@ -4,94 +4,238 @@ Comprehensive automated testing framework for PZ Lua API Viewer.
 Run: python .gsd/test/run.py
 """
 
-import sys
+from __future__ import annotations
+
 import json
-from pathlib import Path
+import subprocess
+import sys
+import time
 from datetime import datetime
+from pathlib import Path
+from types import SimpleNamespace
+from urllib.request import urlopen
+
+from playwright.sync_api import sync_playwright
 
 # Add parent to path for imports
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+TEST_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = TEST_DIR.parent.parent
+sys.path.insert(0, str(TEST_DIR))
+sys.path.insert(0, str(TEST_DIR.parent))
 
-from config import browser, SERVER_URL, REPORT_DIR, init_browser
-from s02_features import test_middle_click_new_tab, test_hover_preview_card
-from navigation import test_back_forward_buttons, test_nav_hash_change
-from search import test_search_basic, test_search_scope_toggle
-from globals import test_globals_panel, test_globals_search
-from detail import test_class_detail_panel, test_copy_fqn
-from inheritance import test_inheritance_chain
-from regression import test_tab_navigation, test_class_link_clicks
+from config import REPORT_DIR, SERVER_SCRIPT, SERVER_URL  # noqa: E402
+import detail  # noqa: E402
+import globals as globals_tests  # noqa: E402
+import inheritance  # noqa: E402
+import navigation  # noqa: E402
+import regression  # noqa: E402
+import s02_features  # noqa: E402
+import search  # noqa: E402
+
+LEGACY_GROUPS = [
+    (
+        "S02 Feature Tests",
+        [
+            s02_features.test_middle_click_new_tab,
+            s02_features.test_hover_preview_card,
+        ],
+    ),
+    (
+        "Navigation Tests",
+        [
+            navigation.test_back_forward_buttons,
+            navigation.test_nav_hash_change,
+        ],
+    ),
+    (
+        "Search Tests",
+        [
+            search.test_search_basic,
+            search.test_search_scope_toggle,
+        ],
+    ),
+    (
+        "Globals Tests",
+        [
+            globals_tests.test_globals_panel,
+            globals_tests.test_globals_search,
+        ],
+    ),
+    (
+        "Detail View Tests",
+        [
+            detail.test_class_detail_panel,
+            detail.test_copy_fqn,
+        ],
+    ),
+    (
+        "Inheritance Tests",
+        [inheritance.test_inheritance_chain],
+    ),
+    (
+        "Regression Tests",
+        [
+            regression.test_tab_navigation,
+            regression.test_class_link_clicks,
+        ],
+    ),
+]
+
+S07_COMMAND = [sys.executable, "-m", "pytest", ".gsd/test/s07_ux_polish.py", "-q"]
+all_results: list[dict] = []
+
+
+class ManagedServer:
+    def __init__(self, script: Path, url: str):
+        self.script = script
+        self.url = url
+        self.proc: subprocess.Popen[str] | None = None
+
+    def __enter__(self):
+        self.proc = subprocess.Popen(
+            [sys.executable, str(self.script)],
+            cwd=PROJECT_DIR,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+
+        deadline = time.time() + 20
+        last_error = None
+        while time.time() < deadline:
+            try:
+                with urlopen(self.url, timeout=1) as response:
+                    if response.status == 200:
+                        return self
+            except Exception as exc:  # pragma: no cover - startup polling only
+                last_error = exc
+                time.sleep(0.25)
+
+        self.close()
+        raise RuntimeError(f"Server did not become ready: {last_error}")
+
+    def __exit__(self, exc_type, exc, tb):
+        self.close()
+
+    def close(self):
+        if not self.proc:
+            return
+        self.proc.terminate()
+        try:
+            self.proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self.proc.kill()
+            self.proc.wait(timeout=5)
+        finally:
+            self.proc = None
+
+
+class BrowserHarness:
+    def __enter__(self):
+        self.playwright = sync_playwright().start()
+        self.browser = self.playwright.chromium.launch(headless=True)
+        self.context = self.browser.new_context(
+            viewport={"width": 1920, "height": 1080},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        )
+        self.page = self.context.new_page()
+        self.page.goto(SERVER_URL + "/")
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.context.close()
+        self.browser.close()
+        self.playwright.stop()
+
+
+class LegacyBrowserShim(SimpleNamespace):
+    @property
+    def context(self):
+        return self.contexts[0]
+
+
+def inject_browser_globals(browser):
+    shim = LegacyBrowserShim(contexts=[browser.context])
+    for module in (s02_features, navigation, search, globals_tests, detail, inheritance, regression):
+        module.browser = shim
+
+
+def run_legacy_tests(browser):
+    total_groups = len(LEGACY_GROUPS) + 1
+    for index, (group_name, tests) in enumerate(LEGACY_GROUPS, start=1):
+        print(f"\n[{index}/{total_groups}] Running {group_name}...")
+        for test_func in tests:
+            page = browser.context.new_page()
+            try:
+                result = test_func(page)
+                print_result(result)
+            finally:
+                for extra_page in list(browser.context.pages):
+                    if extra_page is not page:
+                        extra_page.close()
+                page.close()
+
+
+def run_s07_pytest():
+    print(f"\n[{len(LEGACY_GROUPS) + 1}/{len(LEGACY_GROUPS) + 1}] Running S07 UX Polish Tests...")
+    started = time.perf_counter()
+    proc = subprocess.run(
+        S07_COMMAND,
+        cwd=PROJECT_DIR,
+        capture_output=True,
+        text=True,
+    )
+    duration = round(time.perf_counter() - started, 2)
+
+    if proc.stdout:
+        print(proc.stdout.strip())
+    if proc.stderr:
+        print(proc.stderr.strip())
+
+    if proc.returncode == 0:
+        print_result(
+            {
+                "name": "s07-ux-polish",
+                "passed": True,
+                "message": "Standalone pytest module passed",
+                "command": " ".join(S07_COMMAND),
+                "duration_seconds": duration,
+            }
+        )
+        return
+
+    print_result(
+        {
+            "name": "s07-ux-polish",
+            "passed": False,
+            "message": (proc.stdout + "\n" + proc.stderr).strip()[-4000:],
+            "command": " ".join(S07_COMMAND),
+            "duration_seconds": duration,
+        }
+    )
 
 
 def run_all_tests():
     """Run all tests and generate report."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PZ Lua API Viewer — Automated Test Suite")
-    print("="*60)
+    print("=" * 60)
     print(f"\nTest run started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # Initialize browser
-    page = init_browser()
-    
-    # Run S02 feature tests
-    print("\n[1/7] Running S02 Feature Tests...")
-    result = test_middle_click_new_tab(page)
-    print_result(result)
-    result = test_hover_preview_card(page)
-    print_result(result)
-    
-    # Run navigation tests
-    print("\n[2/7] Running Navigation Tests...")
-    result = test_back_forward_buttons(page)
-    print_result(result)
-    result = test_nav_hash_change(page)
-    print_result(result)
-    
-    # Run search tests
-    print("\n[3/7] Running Search Tests...")
-    result = test_search_basic(page)
-    print_result(result)
-    result = test_search_scope_toggle(page)
-    print_result(result)
-    
-    # Run globals tests
-    print("\n[4/7] Running Globals Tests...")
-    result = test_globals_panel(page)
-    print_result(result)
-    result = test_globals_search(page)
-    print_result(result)
-    
-    # Run detail view tests
-    print("\n[5/7] Running Detail View Tests...")
-    result = test_class_detail_panel(page)
-    print_result(result)
-    result = test_copy_fqn(page)
-    print_result(result)
-    
-    # Run inheritance tests
-    print("\n[6/7] Running Inheritance Tests...")
-    result = test_inheritance_chain(page)
-    print_result(result)
-    
-    # Run regression tests
-    print("\n[7/7] Running Regression Tests...")
-    result = test_tab_navigation(page)
-    print_result(result)
-    result = test_class_link_clicks(page)
-    print_result(result)
-    
-    # Save report
+
+    with ManagedServer(SERVER_SCRIPT, SERVER_URL):
+        with BrowserHarness() as browser:
+            inject_browser_globals(browser)
+            run_legacy_tests(browser)
+        run_s07_pytest()
+
     _save_report()
-    
-    # Cleanup
-    browser.close()
-    
-    # Print summary
+
     passed = sum(1 for r in all_results if r["passed"])
     total = len(all_results)
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"Test Summary: {passed}/{total} tests passed")
-    print("="*60)
-    
+    print("=" * 60)
+
     return all(r["passed"] for r in all_results)
 
 
@@ -102,38 +246,27 @@ def print_result(result):
     all_results.append(result)
 
 
-all_results = []
-
-
 def _save_report():
     """Save a JSON report of all test results."""
-    report_dir = REPORT_DIR
-    report_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Collect all screenshots
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+
     screenshots = []
-    for r in all_results:
-        if r.get("screenshot") and isinstance(r["screenshot"], dict) and "path" in r["screenshot"]:
-            screenshots.append({
-                "test": r["name"],
-                **r["screenshot"]
-            })
-    
-    # Create report
+    for result in all_results:
+        screenshot = result.get("screenshot")
+        if screenshot and isinstance(screenshot, dict) and "path" in screenshot:
+            screenshots.append({"test": result["name"], **screenshot})
+
     report = {
         "run_date": datetime.now().isoformat(),
         "total_tests": len(all_results),
         "passed": sum(1 for r in all_results if r["passed"]),
         "failed": sum(1 for r in all_results if not r["passed"]),
         "results": all_results,
-        "screenshots": screenshots
+        "screenshots": screenshots,
     }
-    
-    # Save as JSON
-    json_path = report_dir / "report.json"
-    with open(json_path, 'w') as f:
-        json.dump(report, f, indent=2)
-    
+
+    json_path = REPORT_DIR / "report.json"
+    json_path.write_text(json.dumps(report, indent=2))
     print(f"\n[INFO] Report saved to {json_path}")
 
 

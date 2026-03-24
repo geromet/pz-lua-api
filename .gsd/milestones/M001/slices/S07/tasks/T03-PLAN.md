@@ -48,3 +48,9 @@ PY`
 - `.gsd/test/run.py` — full-suite registration for S07 tests
 - `.gsd/test/s07_ux_polish.py` — finalized runnable S07 coverage
 - `.gsd/milestones/M001/slices/S07/S07-PLAN.md` — verification text still aligned with reality if any command/path drift was fixed
+
+## Observability Impact
+
+- Signals changed: the main runner now needs to surface S07 UX-polish results alongside the existing JSON report so prefetch/loading/breadcrumb regressions show up in the same report file future agents already inspect.
+- How to inspect: run `python .gsd/test/run.py` for the consolidated report, `python -m pytest .gsd/test/s07_ux_polish.py` for the slice module in isolation, and inspect `.gsd/test-reports/report.json` for aggregated pass/fail status.
+- Failure visibility: if S07 coverage fails from the main runner, the failing UX-polish test names and report counters must make that visible without rereading task history.

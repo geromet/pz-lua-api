@@ -1,50 +1,54 @@
 #!/usr/bin/env python3
 """Navigation Tests: Back/Forward buttons and URL hash changes."""
 
-from config import browser, SERVER_URL, REPORT_DIR
+from datetime import datetime
+import time
+
+from config import SERVER_URL, REPORT_DIR
+
+
+CLASS_URL = SERVER_URL + "/#zombie.characters.IsoPlayer"
+
+
+def _wait_ready(page):
+    page.goto(CLASS_URL)
+    page.locator('#loading').wait_for(state='hidden', timeout=10000)
+
+
+def _nav_link(page):
+    link = page.locator('#class-list .class-item[data-fqn]').nth(1)
+    link.wait_for(state='visible', timeout=10000)
+    return link
 
 
 def test_back_forward_buttons(page) -> dict:
     """Test that back/forward buttons work correctly."""
     try:
-        # Navigate to IsoPlayer
-        page.goto(SERVER_URL + "/zombie.characters.IsoPlayer")
-        
-        # Click a class to go deeper
-        class_ref = page.locator('a[data-fqn]').first
-        if not class_ref.is_visible():
-            return {"name": "back-forward-buttons", "passed": False,
-                    "message": "Could not find a class reference link to navigate to"}
-        
+        _wait_ready(page)
+        class_ref = _nav_link(page)
+
         fqn = class_ref.get_attribute("data-fqn")
         print(f"  [Nav] Navigating from IsoPlayer to {fqn}...")
-        
+
         class_ref.click()
-        import time
         time.sleep(1)
-        
-        # Check if we're on the new page
-        if "IsoPlayer" in page.title():
+
+        if page.url.endswith("#zombie.characters.IsoPlayer"):
             return {"name": "back-forward-buttons", "passed": False,
                     "message": f"Expected to be on {fqn}, but still on IsoPlayer"}
-        
-        # Capture screenshot before back
-        screenshot_before = capture_screenshot(page, "back-before")
-        
-        # Press Back
-        page.keyboard.press("ArrowLeft")
+
+        page.locator('#btn-nav-back').click()
         time.sleep(0.5)
-        
-        # Check if we're back at IsoPlayer
-        if "IsoPlayer" not in page.title():
+
+        if not page.url.endswith("#zombie.characters.IsoPlayer"):
             return {"name": "back-forward-buttons", "passed": False,
-                    "message": f"After back button: {page.title()}"}
-        
+                    "message": f"After back button: {page.url}"}
+
         screenshot_after = capture_screenshot(page, "back-success")
         return {"name": "back-forward-buttons", "passed": True,
                 "message": f"Successfully navigated back from {fqn} to IsoPlayer",
                 "screenshot": screenshot_after}
-                
+
     except Exception as e:
         print(f"  [Nav] Error: {e}")
         return {"name": "back-forward-buttons", "passed": False,
@@ -55,29 +59,23 @@ def test_back_forward_buttons(page) -> dict:
 def test_nav_hash_change(page) -> dict:
     """Test that navigation updates the URL hash."""
     try:
-        page.goto(SERVER_URL + "/zombie.characters.IsoPlayer")
+        _wait_ready(page)
         initial_hash = page.url.split("#")[-1] if "#" in page.url else ""
-        
-        # Navigate to another class
-        class_ref = page.locator('a[data-fqn]').first
-        if not class_ref.is_visible():
-            return {"name": "nav-hash-change", "passed": False,
-                    "message": "Could not find a class reference link"}
-        
+
+        class_ref = _nav_link(page)
         fqn = class_ref.get_attribute("data-fqn")
         class_ref.click()
-        import time
         time.sleep(0.5)
-        
+
         new_hash = page.url.split("#")[-1] if "#" in page.url else ""
-        
+
         if new_hash == initial_hash and initial_hash:
             return {"name": "nav-hash-change", "passed": False,
                     "message": f"Hash before: {initial_hash}, after: {new_hash}"}
-        
+
         return {"name": "nav-hash-change", "passed": True,
-                "message": f"URL hash updated from {initial_hash} to {new_hash}"}
-                
+                "message": f"URL hash updated from {initial_hash} to {new_hash} ({fqn})"}
+
     except Exception as e:
         print(f"  [Nav] Error: {e}")
         return {"name": "nav-hash-change", "passed": False,
@@ -87,24 +85,21 @@ def test_nav_hash_change(page) -> dict:
 def capture_screenshot(page, name, selector=None):
     """Capture a screenshot with metadata."""
     from config import REPORT_DIR
-    from playwright.sync_api import BrowserContext
     screenshot_path = REPORT_DIR / f"{name}.png"
     screenshot_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     if selector:
         element = page.locator(selector).first
         element.screenshot(path=str(screenshot_path))
     else:
         page.screenshot(path=str(screenshot_path))
-    
+
     import hashlib
     file_hash = hashlib.md5(open(screenshot_path, 'rb').read()).hexdigest()[:8]
-    
+
     return {
         "path": str(screenshot_path),
         "hash": file_hash,
         "timestamp": datetime.now().isoformat(),
         "selector": selector
     }
-
-from datetime import datetime
