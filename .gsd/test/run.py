@@ -31,6 +31,7 @@ import navigation  # noqa: E402
 import regression  # noqa: E402
 import s02_features  # noqa: E402
 import s08_navigation_state  # noqa: F401,E402
+import s09_load_perf  # noqa: F401,E402
 import search  # noqa: E402
 
 LEGACY_GROUPS = [
@@ -84,6 +85,7 @@ LEGACY_GROUPS = [
 
 S07_COMMAND = [sys.executable, "-m", "pytest", ".gsd/test/s07_ux_polish.py", "-q"]
 S08_COMMAND = [sys.executable, "-m", "pytest", ".gsd/test/s08_navigation_state.py", "-q"]
+S09_COMMAND = [sys.executable, "-m", "pytest", ".gsd/test/s09_load_perf.py", "-q"]
 all_results: list[dict] = []
 
 
@@ -163,7 +165,7 @@ def inject_browser_globals(browser):
 
 
 def run_legacy_tests(browser):
-    total_groups = len(LEGACY_GROUPS) + 2
+    total_groups = len(LEGACY_GROUPS) + 3
     for index, (group_name, tests) in enumerate(LEGACY_GROUPS, start=1):
         print(f"\n[{index}/{total_groups}] Running {group_name}...")
         for test_func in tests:
@@ -205,11 +207,15 @@ def run_pytest_module(index: int, total: int, name: str, command: list[str]):
 
 
 def run_s07_pytest():
-    run_pytest_module(len(LEGACY_GROUPS) + 1, len(LEGACY_GROUPS) + 2, "S07 UX Polish Tests", S07_COMMAND)
+    run_pytest_module(len(LEGACY_GROUPS) + 1, len(LEGACY_GROUPS) + 3, "S07 UX Polish Tests", S07_COMMAND)
 
 
 def run_s08_pytest():
-    run_pytest_module(len(LEGACY_GROUPS) + 2, len(LEGACY_GROUPS) + 2, "S08 Navigation State Tests", S08_COMMAND)
+    run_pytest_module(len(LEGACY_GROUPS) + 2, len(LEGACY_GROUPS) + 3, "S08 Navigation State Tests", S08_COMMAND)
+
+
+def run_s09_pytest():
+    run_pytest_module(len(LEGACY_GROUPS) + 3, len(LEGACY_GROUPS) + 3, "S09 Load Performance Tests", S09_COMMAND)
 
 
 def run_all_tests():
@@ -225,6 +231,7 @@ def run_all_tests():
             run_legacy_tests(browser)
         run_s07_pytest()
         run_s08_pytest()
+        run_s09_pytest()
 
     _save_report()
 

@@ -59,7 +59,7 @@
   - Verify: `grep -q '<style>' index.html && grep -q 'sw.js' index.html && test -f sw.js && grep -q 'pz-api-v' sw.js`
   - Done when: `index.html` contains an inline `<style>` block and SW registration; `sw.js` exists with cache-first strategy for static assets
 
-- [ ] **T03: Write S09 Playwright test and run full suite** `est:45m`
+- [x] **T03: Write S09 Playwright test and run full suite** `est:45m`
   - Why: Proves index-only boot works and per-class detail fetches correctly; catches any regressions in existing tests.
   - Files: `.gsd/test/s09_load_perf.py`, `.gsd/test/run.py`
   - Do: Write `s09_load_perf.py` with pytest-playwright tests: (1) serve the viewer with `python -m http.server` in background, (2) assert `lua_api_index.json` is fetched on load (intercept network or check `data-detail-state` absence until class clicked), (3) click a class and assert `data-detail-state` transitions `loading` → `ready` and a `lua_api_detail/*.json` request was made, (4) assert `#detail-panel` renders class name. Register `s09_load_perf.py` in `.gsd/test/run.py`. Run full suite.

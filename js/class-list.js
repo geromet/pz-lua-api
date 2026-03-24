@@ -10,10 +10,10 @@ function passesCurrentFilter(fqn, cls) {
   return true;
 }
 
-function hasTaggedMethods(cls) { return cls.methods.some(m => m.lua_tagged); }
+function hasTaggedMethods(cls) { return (cls.methods || []).some(m => m.lua_tagged); }
 
 function hasCallableMethods(cls) {
-  return cls.methods.some(m => m.lua_tagged || (!m.static && cls.set_exposed));
+  return (cls.methods || []).some(m => m.lua_tagged || (!m.static && cls.set_exposed));
 }
 
 function scoreClass(fqn, cls, search) {
@@ -25,8 +25,8 @@ function scoreClass(fqn, cls, search) {
   if (simple.startsWith(s)) return 80;
   if (simple.includes(s))   return 60;
   if (fqnL.includes(s))     return 40;
-  const mm = cls.methods.filter(m => m.name.toLowerCase().includes(s)).length;
-  const fm = cls.fields.filter(f  => f.name.toLowerCase().includes(s)).length;
+  const mm = (cls.methods || []).filter(m => m.name.toLowerCase().includes(s)).length;
+  const fm = (cls.fields  || []).filter(f  => f.name.toLowerCase().includes(s)).length;
   if (mm > 0) return 20 + Math.min(mm, 10);
   if (fm > 0) return 10 + Math.min(fm, 5);
   return 0;

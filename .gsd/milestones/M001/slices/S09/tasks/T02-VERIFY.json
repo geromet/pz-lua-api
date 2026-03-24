@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T02",
+  "unitId": "M001/S09/T02",
+  "timestamp": 1774381330489,
+  "passed": true,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'sw.js' index.html",
+      "exitCode": 0,
+      "durationMs": 6,
+      "verdict": "pass"
+    },
+    {
+      "command": "test -f sw.js",
+      "exitCode": 0,
+      "durationMs": 5,
+      "verdict": "pass"
+    }
+  ]
+}
