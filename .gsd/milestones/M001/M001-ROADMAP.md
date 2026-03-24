@@ -39,7 +39,7 @@
   > After this: hover prefetch preloads source; header is decluttered; color palette tightened; zero layout shift; breadcrumb trail in detail
 - [x] **S08: Navigation State** risk:medium depends:[S06]
   > After this: full UI state (filter, search, active tab, scroll) encoded in URL; recently viewed classes dropdown
-- [ ] **S09: Load Performance** risk:high depends:[S06, S07, S08]
+- [x] **S09: Load Performance** risk:high depends:[S06, S07, S08]
   > After this: lua_api.json split into index + per-class files; critical CSS inlined; service worker caches repeat visits
 
 ## Milestone Definition of Done
@@ -61,4 +61,4 @@ This milestone is complete only when all are true:
 - [x] **S06:** instant search + progressive rendering — pre-computed index cuts search to <3ms; progressive render keeps first frame at 50 DOM nodes
 - [x] **S07:** UX polish — hover prefetch, declutter, layout stability, breadcrumbs
 - [x] **S08:** full URL state, recently viewed
-- [ ] **S09:** JSON split, critical CSS, service worker
+- [x] **S09:** JSON split, critical CSS, service worker
