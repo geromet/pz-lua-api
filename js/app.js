@@ -58,11 +58,56 @@ function setupVersionDropdown(manifest, currentId) {
   });
 }
 
+const FILTER_LABELS = {
+  all: 'All classes',
+  both: 'Both markers',
+  exposed: 'setExposed only',
+  tagged: '@UsedFromLua only',
+  'has-tagged-methods': 'Tagged methods',
+  callable: 'Callable',
+  enum: 'Enums',
+};
+
+function syncFilterControl() {
+  const select = document.getElementById('filter-select');
+  const chip = document.getElementById('active-filter-chip');
+  const label = FILTER_LABELS[currentFilter] || currentFilter;
+  if (select) {
+    select.value = currentFilter;
+    select.dataset.activeFilter = currentFilter;
+  }
+  if (chip) {
+    chip.textContent = label;
+    chip.dataset.filter = currentFilter;
+    chip.className = `filter-chip filter-${currentFilter}`;
+  }
+}
+
+function setCurrentFilter(filter) {
+  currentFilter = filter;
+  syncFilterControl();
+  buildClassList();
+}
+
+function applyPackageBreadcrumb(path) {
+  const searchEl = document.getElementById('global-search');
+  const clearBtn = document.getElementById('btn-search-clear');
+  if (!searchEl) return;
+  currentSearch = path ? `${path}.` : '';
+  searchEl.value = currentSearch;
+  clearBtn?.classList.toggle('visible', !!currentSearch);
+  switchTab('classes');
+  buildClassList();
+  searchEl.focus();
+  searchEl.setSelectionRange(currentSearch.length, currentSearch.length);
+}
+
 function init() {
   const m = API._meta;
   document.getElementById('stat-exposed').textContent = m.set_exposed_count;
   document.getElementById('stat-tagged').textContent  = m.lua_tagged_count;
   document.getElementById('stat-globals').textContent = `${m.total_global_functions} globals`;
+  syncFilterControl();
 
   // Build simple-name → [fqn, …] lookup for source class-ref linking
   // Fast path: use precomputed maps from lua_api.json if present
@@ -446,14 +491,11 @@ function setupEvents() {
       else switchCtab('detail');
     }));
 
-  // Filter buttons
-  document.querySelectorAll('.filter-btn').forEach(btn =>
-    btn.addEventListener('click', () => {
-      currentFilter = btn.dataset.filter;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      buildClassList();
-    }));
+  // Filter control
+  const filterSelect = document.getElementById('filter-select');
+  if (filterSelect) {
+    filterSelect.addEventListener('change', () => setCurrentFilter(filterSelect.value));
+  }
 
   // Event delegation for class list (search results + tree items)
   document.getElementById('class-list').addEventListener('click', e => {

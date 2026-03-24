@@ -108,6 +108,61 @@ def test_hover_prefetch_marks_pending_then_ready(page):
     expect(page.locator("#hover-preview")).to_have_attribute("data-prefetch-state", "ready", timeout=3000)
 
 
+@pytest.mark.header
+def test_header_filter_select_preserves_active_filter(page):
+    filter_select = page.locator("#filter-select")
+    active_chip = page.locator("#active-filter-chip")
+
+    expect(filter_select).to_have_value("all")
+    expect(filter_select).to_have_attribute("data-active-filter", "all")
+    expect(active_chip).to_have_attribute("data-filter", "all")
+
+    filter_select.select_option("enum")
+
+    expect(filter_select).to_have_value("enum")
+    expect(filter_select).to_have_attribute("data-active-filter", "enum")
+    expect(active_chip).to_have_attribute("data-filter", "enum")
+    expect(page.locator("#class-count")).not_to_have_text("0 classes")
+
+
+@pytest.mark.breadcrumbs
+def test_breadcrumbs_render_and_click_into_existing_search(page):
+    crumbs = page.locator("#detail-panel .class-breadcrumbs")
+    expect(crumbs).to_be_visible()
+    expect(crumbs.locator('[data-breadcrumb-package="zombie"]')).to_have_text("zombie")
+    expect(crumbs.locator('[data-breadcrumb-package="zombie.characters"]')).to_have_text("characters")
+    expect(crumbs.locator('[data-breadcrumb-leaf="zombie.characters.IsoPlayer"]')).to_have_text("IsoPlayer")
+
+    crumbs.locator('[data-breadcrumb-package="zombie.characters"]').click()
+
+    expect(page.locator("#global-search")).to_have_value("zombie.characters.")
+    expect(page.locator("#class-list .class-item").first).to_be_visible()
+    expect(page.locator("#class-count")).not_to_have_text("0 classes")
+
+
+@pytest.mark.layout
+def test_detail_and_source_panels_expose_stable_shell_state(page):
+    expect(page.locator("#detail-panel")).to_have_attribute("data-detail-state", "ready")
+    expect(page.locator("#detail-panel .detail-shell")).to_be_visible()
+
+    source_file = page.evaluate("() => API.classes['zombie.characters.IsoPlayer'].source_file")
+
+    def maybe_delay_route(route):
+        if route.request.url.endswith(source_file):
+            time.sleep(0.8)
+        route.continue_()
+
+    page.route("**/sources/**", maybe_delay_route)
+    page.reload()
+    page.locator("#loading").wait_for(state="hidden", timeout=10000)
+    page.locator('[data-ctab="source"]').click()
+
+    expect(page.locator("#source-panel")).to_have_attribute("data-source-state", "pending")
+    box = page.locator("#source-pre").bounding_box()
+    assert box is not None and box["height"] >= 250, box
+    expect(page.locator("#source-panel")).to_have_attribute("data-source-state", "ready", timeout=3000)
+
+
 @pytest.mark.loading_state
 @pytest.mark.failure
 @pytest.mark.diagnostics

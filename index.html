@@ -10,18 +10,27 @@
 <body>
 
 <div id="header">
-  <h1>PZ Lua API</h1>
-  <button id="btn-nav-back"    class="nav-btn" disabled title="Back (Alt+←)">←</button>
-  <button id="btn-nav-forward" class="nav-btn" disabled title="Forward (Alt+→)">→</button>
-  <div class="search-wrap">
+  <div class="header-brand">
+    <h1>PZ Lua API</h1>
+    <div class="header-subtitle">Browsable Lua-facing Java reference with linked source.</div>
+  </div>
+  <div class="header-nav" aria-label="History navigation">
+    <button id="btn-nav-back" class="nav-btn" disabled title="Back (Alt+←)">←</button>
+    <button id="btn-nav-forward" class="nav-btn" disabled title="Forward (Alt+→)">→</button>
+  </div>
+  <div class="search-wrap header-search">
     <input id="global-search" type="text" placeholder="Search classes, methods, fields… (press /)" autocomplete="off">
     <button id="btn-search-clear" class="search-clear" title="Clear search">×</button>
   </div>
-  <span class="hstat"><span class="hstat-dot" style="background:var(--col-exposed)"></span><span id="stat-exposed">…</span> setExposed</span>
-  <span class="hstat"><span class="hstat-dot" style="background:var(--col-tagged)"></span><span id="stat-tagged">…</span> @UsedFromLua</span>
-  <span class="hstat" id="stat-globals" style="color:var(--text-dim)"></span>
-  <select id="version-select" style="display:none" title="Switch API version"></select>
-  <button id="btn-folder" title="Load source files from your local Project Zomboid installation (overrides pre-shipped sources)">📁 Local sources</button>
+  <div class="header-summary" aria-label="API summary">
+    <span class="summary-pill summary-pill-exposed"><span class="hstat-dot"></span><span id="stat-exposed">…</span><span class="summary-label">setExposed</span></span>
+    <span class="summary-pill summary-pill-tagged"><span class="hstat-dot"></span><span id="stat-tagged">…</span><span class="summary-label">@UsedFromLua</span></span>
+    <span class="summary-pill summary-pill-neutral" id="stat-globals">…</span>
+  </div>
+  <div class="header-controls">
+    <select id="version-select" style="display:none" title="Switch API version"></select>
+    <button id="btn-folder" title="Load source files from your local Project Zomboid installation (overrides pre-shipped sources)">📁 Local sources</button>
+  </div>
 </div>
 
 <div id="tabs">
@@ -37,14 +46,20 @@
       <span class="legend-item"><span class="dot dot-tagged"></span> @UsedFromLua</span>
       <span class="legend-item"><span class="dot dot-blue"></span> tagged methods</span>
     </div>
-    <div id="sidebar-filters">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="both">Both</button>
-      <button class="filter-btn" data-filter="exposed">setExposed only</button>
-      <button class="filter-btn" data-filter="tagged">@UsedFromLua only</button>
-      <button class="filter-btn" data-filter="has-tagged-methods">Has tagged methods</button>
-      <button class="filter-btn" data-filter="callable">Callable</button>
-      <button class="filter-btn" data-filter="enum">Enums</button>
+    <div id="sidebar-toolbar">
+      <label class="sidebar-field" for="filter-select">
+        <span class="sidebar-field-label">Scope</span>
+        <select id="filter-select" data-active-filter="all" aria-label="Class filter">
+          <option value="all">All classes</option>
+          <option value="both">Both markers</option>
+          <option value="exposed">setExposed only</option>
+          <option value="tagged">@UsedFromLua only</option>
+          <option value="has-tagged-methods">Tagged methods</option>
+          <option value="callable">Callable</option>
+          <option value="enum">Enums</option>
+        </select>
+      </label>
+      <div id="active-filter-chip" class="filter-chip filter-all" data-filter="all">All classes</div>
     </div>
     <div id="fold-depth-controls">
       <button class="fdc-btn" id="btn-fold-all-pkg" title="Fold all packages">▶▶</button>

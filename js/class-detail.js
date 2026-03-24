@@ -1,48 +1,76 @@
 'use strict';
 
+function renderBreadcrumbs(fqn) {
+  const parts = fqn.split('.');
+  const simple = parts.pop();
+  const packages = parts.map((part, index) => ({
+    label: part,
+    path: parts.slice(0, index + 1).join('.'),
+  }));
+
+  return `
+    <nav class="class-breadcrumbs" aria-label="Class path" data-breadcrumb-root="${esc(parts.join('.'))}">
+      ${packages.map(({label, path}) => `
+        <button class="crumb-link" type="button" data-breadcrumb-package="${esc(path)}">${esc(label)}</button>
+      `).join('<span class="crumb-sep" aria-hidden="true">›</span>')}
+      ${packages.length ? '<span class="crumb-sep" aria-hidden="true">›</span>' : ''}
+      <span class="crumb-current" data-breadcrumb-leaf="${esc(fqn)}">${esc(simple)}</span>
+    </nav>`;
+}
+
 function renderClassDetail(fqn) {
   const cls    = API.classes[fqn];
   const simple = fqn.split('.').pop();
   const panel  = document.getElementById('detail-panel');
+  panel.dataset.detailState = 'loading';
+  panel.dataset.detailFqn = fqn;
 
   panel.innerHTML = `
-    <div class="class-header">
-      <h2>${esc(simple)}</h2>
-      <div class="fqn fqn-copyable" title="Click to copy FQN" data-fqn-copy="${esc(fqn)}">${esc(fqn)}</div>
-      <div class="badges">
-        <span class="badge ${cls.set_exposed ? 'badge-exposed' : 'badge-no'}">${cls.set_exposed ? 'setExposed' : 'not setExposed'}</span>
-        <span class="badge ${cls.lua_tagged  ? 'badge-tagged'  : 'badge-no'}">${cls.lua_tagged  ? '@UsedFromLua' : 'not @UsedFromLua'}</span>
-        ${cls.is_enum ? '<span class="badge badge-enum">enum</span>' : ''}
+    <div class="detail-shell">
+      <div class="class-header">
+        ${renderBreadcrumbs(fqn)}
+        <div class="class-title-row">
+          <div class="class-title-block">
+            <h2>${esc(simple)}</h2>
+            <div class="fqn fqn-copyable" title="Click to copy FQN" data-fqn-copy="${esc(fqn)}">${esc(fqn)}</div>
+          </div>
+          <div class="badges">
+            <span class="badge ${cls.set_exposed ? 'badge-exposed' : 'badge-no'}">${cls.set_exposed ? 'setExposed' : 'not setExposed'}</span>
+            <span class="badge ${cls.lua_tagged  ? 'badge-tagged'  : 'badge-no'}">${cls.lua_tagged  ? '@UsedFromLua' : 'not @UsedFromLua'}</span>
+            ${cls.is_enum ? '<span class="badge badge-enum">enum</span>' : ''}
+          </div>
+        </div>
+        ${cls.source_file
+          ? `<div class="source-path source-path-link" title="Click to view source">${esc(cls.source_file)}</div>`
+          : `<div class="source-path source-path-empty">no source</div>`
+        }
       </div>
-      ${cls.source_file
-        ? `<div class="source-path source-path-link" title="Click to view source">${esc(cls.source_file)}</div>`
-        : `<div class="source-path" style="color:var(--text-dim);font-style:italic">no source</div>`
-      }
-    </div>
-    ${renderInheritHeader(cls, fqn)}
-    ${(cls.constructors || []).length ? `
-    <div class="section">
-      <div class="section-header">
-        <h3>Constructors</h3><span class="count">${(cls.constructors || []).length}</span>
+      ${renderInheritHeader(cls, fqn)}
+      ${(cls.constructors || []).length ? `
+      <div class="section">
+        <div class="section-header">
+          <h3>Constructors</h3><span class="count">${(cls.constructors || []).length}</span>
+        </div>
+        <div id="constructors-wrap">${renderConstructorsTable(cls)}</div>
+      </div>` : ''}
+      <div class="section">
+        <div class="section-header">
+          <h3>Methods</h3><span class="count" id="method-count">${cls.methods.length}</span>
+          <span id="noncallable-btn-wrap"></span>
+          ${cls.methods.length ? `<span class="inline-search-wrap"><input class="inline-search" id="method-search-inp" type="text" placeholder="Filter…" value="${esc(methodSearch)}" autocomplete="off"><button class="inline-search-clear${methodSearch ? ' visible' : ''}" id="btn-method-search-clear" title="Clear filter">×</button></span>` : ''}
+        </div>
+        <div id="methods-wrap"></div>
+        <div id="inherit-wrap"></div>
       </div>
-      <div id="constructors-wrap">${renderConstructorsTable(cls)}</div>
-    </div>` : ''}
-    <div class="section">
-      <div class="section-header">
-        <h3>Methods</h3><span class="count" id="method-count">${cls.methods.length}</span>
-        <span id="noncallable-btn-wrap"></span>
-        ${cls.methods.length ? `<span class="inline-search-wrap"><input class="inline-search" id="method-search-inp" type="text" placeholder="Filter…" value="${esc(methodSearch)}" autocomplete="off"><button class="inline-search-clear${methodSearch ? ' visible' : ''}" id="btn-method-search-clear" title="Clear filter">×</button></span>` : ''}
+      <div class="section">
+        <div class="section-header">
+          <h3>${cls.is_enum ? 'Constants' : 'Fields'}</h3><span class="count" id="field-count">${cls.fields.length}</span>
+          ${cls.fields.length && !cls.is_enum ? `<span class="inline-search-wrap"><input class="inline-search" id="field-search-inp" type="text" placeholder="Filter…" value="${esc(fieldSearch)}" autocomplete="off"><button class="inline-search-clear${fieldSearch ? ' visible' : ''}" id="btn-field-search-clear" title="Clear filter">×</button></span>` : ''}
+        </div>
+        <div id="fields-wrap"></div>
       </div>
-      <div id="methods-wrap"></div>
-      <div id="inherit-wrap"></div>
-    </div>
-    <div class="section">
-      <div class="section-header">
-        <h3>${cls.is_enum ? 'Constants' : 'Fields'}</h3><span class="count" id="field-count">${cls.fields.length}</span>
-        ${cls.fields.length && !cls.is_enum ? `<span class="inline-search-wrap"><input class="inline-search" id="field-search-inp" type="text" placeholder="Filter…" value="${esc(fieldSearch)}" autocomplete="off"><button class="inline-search-clear${fieldSearch ? ' visible' : ''}" id="btn-field-search-clear" title="Clear filter">×</button></span>` : ''}
-      </div>
-      <div id="fields-wrap"></div>
     </div>`;
+  panel.dataset.detailState = 'ready';
 
   switchCtab('detail');
   refreshMethods(cls, fqn);
@@ -62,6 +90,10 @@ function renderClassDetail(fqn) {
       }
     });
   }
+
+  panel.querySelectorAll('[data-breadcrumb-package]').forEach(btn => {
+    btn.addEventListener('click', () => applyPackageBreadcrumb(btn.dataset.breadcrumbPackage || ''));
+  });
 
   // Copy FQN to clipboard on click
   const fqnEl = panel.querySelector('.fqn-copyable');

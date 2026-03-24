@@ -53,7 +53,7 @@ PY`
   - Do: Add delayed hover prefetch for `[data-fqn]` links using the existing delegated hover flow and `sourceCache`, cancel short hovers cleanly, avoid duplicate fetches, and expose durable DOM state for pending/success/error so automated tests can assert it. Extend the browser tests to cover hover warming and at least one diagnostic/failure-state assertion.
   - Verify: `python -m pytest .gsd/test/s07_ux_polish.py -k "prefetch or loading_state"`
   - Done when: Hovering an eligible class link warms source without navigation, repeat hovers reuse cache instead of starting new fetches, and tests can inspect the state transition when prefetch/source load succeeds or fails.
-- [ ] **T02: Recompose header, filters, breadcrumbs, and stable layout styling** `est:2h`
+- [x] **T02: Recompose header, filters, breadcrumbs, and stable layout styling** `est:2h`
   - Why: The visual clutter and layout-shift work all sit on the same markup/CSS seam. Doing them together avoids planning against a header/sidebar structure that changes again one task later.
   - Files: `index.html`, `app.css`, `js/app.js`, `js/class-detail.js`
   - Do: Replace the always-on sidebar filter button wall with a compact control/dropdown backed by the current filter state, compress header stats into a quieter summary row, tighten the palette/typography tokens, add breadcrumb rendering and click behavior in the detail panel, and reserve stable panel/detail loading space with skeleton or placeholder styling rather than late layout expansion.
