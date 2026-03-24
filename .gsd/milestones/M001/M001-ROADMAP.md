@@ -37,7 +37,7 @@
   > After this: search results appear as-you-type with no perceptible delay; progressive rendering keeps first frame at 50 DOM nodes
 - [x] **S07: UX Polish** risk:medium depends:[S06]
   > After this: hover prefetch preloads source; header is decluttered; color palette tightened; zero layout shift; breadcrumb trail in detail
-- [ ] **S08: Navigation State** risk:medium depends:[S06]
+- [x] **S08: Navigation State** risk:medium depends:[S06]
   > After this: full UI state (filter, search, active tab, scroll) encoded in URL; recently viewed classes dropdown
 - [ ] **S09: Load Performance** risk:high depends:[S06, S07, S08]
   > After this: lua_api.json split into index + per-class files; critical CSS inlined; service worker caches repeat visits
@@ -60,5 +60,5 @@ This milestone is complete only when all are true:
 - [x] **S05:** sidebar splitter with drag-to-resize and localStorage persistence
 - [x] **S06:** instant search + progressive rendering — pre-computed index cuts search to <3ms; progressive render keeps first frame at 50 DOM nodes
 - [x] **S07:** UX polish — hover prefetch, declutter, layout stability, breadcrumbs
-- [ ] **S08:** full URL state, recently viewed
+- [x] **S08:** full URL state, recently viewed
 - [ ] **S09:** JSON split, critical CSS, service worker

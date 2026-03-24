@@ -13,6 +13,7 @@ Agents read this before every unit. Add entries when you discover something wort
 | # | Pattern | Where | Notes |
 |---|---------|-------|-------|
 | P001 | Publish runtime UI status through DOM data attributes and assert those seams in browser tests. | `#hover-preview`, `#detail-panel`, `#source-panel`, `#source-loading`, `#filter-select`, `#active-filter-chip`, `.gsd/test/s07_ux_polish.py` | This is now the authoritative way to verify pending/ready/error transitions for hover prefetch, detail loading, source loading, and compact filter state. |
+| P002 | Treat URL/query state and localStorage-backed recent history as inspectable runtime contracts, not hidden implementation details. | `#content[data-nav-*]`, `#recent-classes[data-recent-*]`, `.gsd/test/s08_navigation_state.py` | S08 made navigation restore state and recent-history state part of the observable surface, which keeps browser verification stable even when UI wording or layout changes. |
 
 ## Lessons Learned
 
